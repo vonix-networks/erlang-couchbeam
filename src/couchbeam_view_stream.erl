@@ -179,14 +179,28 @@ decode_data(Data, #state{owner=Owner,
     catch error:badarg -> exit(badarg)
     end.
 
-maybe_continue(#state{parent=Parent, owner=Owner, ref=Ref, mref=MRef,
-                      async=once}=State) ->
+maybe_continue(#state{parent=Parent,
+                      owner=Owner,
+                      ref=Ref,
+                      mref=MRef,
+                      async=once,
+                      client_ref=ClientRef}=State) ->
 
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
             maybe_close(State),
             exit(normal);
+        {hackney_response, ClientRef, done} ->
+            %% unregister the stream
+            ets:delete(couchbeam_view_streams, Ref),
+            %% report the error
+            report_error({error, closed}, Ref, Owner),
+            exit({error, closed});
+        {hackney_response, ClientRef, {error, _}=Error} ->
+            %% report the error
+            report_error(Error, Ref, Owner),
+            exit(Error);
         {Ref, stream_next} ->
             loop(State);
         {Ref, cancel} ->
@@ -211,12 +225,23 @@ maybe_continue(#state{parent=Parent, owner=Owner, ref=Ref, mref=MRef,
 maybe_continue(#state{parent=Parent,
                       owner=Owner,
                       ref=Ref,
-                      mref=MRef}=State) ->
+                      mref=MRef,
+                      client_ref=ClientRef}=State) ->
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
             maybe_close(State),
             exit(normal);
+        {hackney_response, ClientRef, done} ->
+            %% unregister the stream
+            ets:delete(couchbeam_view_streams, Ref),
+            %% report the error
+            report_error({error, closed}, Ref, Owner),
+            exit({error, closed});
+        {hackney_response, ClientRef, {error, _}=Error} ->
+            %% report the error
+            report_error(Error, Ref, Owner),
+            exit(Error);
         {Ref, cancel} ->
             maybe_close(State),
             %% unregister the stream
