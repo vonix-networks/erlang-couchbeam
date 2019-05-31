@@ -36,10 +36,10 @@
 -type ejson_key() :: binary() | atom().
 
 -type ejson_term() :: ejson_array()
-    | ejson_object()
-    | ejson_string()
-    | ejson_number()
-    | true | false | null.
+                    | ejson_object()
+                    | ejson_string()
+                    | ejson_number()
+                    | true | false | null.
 
 -type ejson_string() :: binary().
 
@@ -48,109 +48,109 @@
 -type doc() :: ejson_object().
 
 -type changes_option() :: continuous | longpoll | normal
-    | include_docs | {since, integer()}
-    | {timeout, integer()}
-    | heartbeat | {heartbeat, integer()}
-    | {filter, string()} | {filter, string(), list({string(), string() | integer()}
-)}
-    | conflicts | {style, string()} | descending.
+                        | include_docs | {since, integer()}
+                        | {timeout, integer()}
+                        | heartbeat | {heartbeat, integer()}
+                        | {filter, string()} | {filter, string(), list({string(), string() | integer()}
+                                                                      )}
+                        | conflicts | {style, string()} | descending.
 -type changes_options() :: list(changes_option()).
 
 -type changes_option1() :: longpoll | normal
-    | include_docs | {since, integer()}
-    | {timeout, integer()}
-    | heartbeat | {heartbeat, integer()}
-    | {filter, string()} | {filter, string(), list({string(), string() | integer()}
-)}
-    | conflicts | {style, string()} | descending.
+                         | include_docs | {since, integer()}
+                         | {timeout, integer()}
+                         | heartbeat | {heartbeat, integer()}
+                         | {filter, string()} | {filter, string(), list({string(), string() | integer()}
+                                                                       )}
+                         | conflicts | {style, string()} | descending.
 -type changes_options1() :: list(changes_option1()).
 
 -type changes_stream_option() :: continuous | longpoll | normal
-    | include_docs
-    | {since, integer()}
-    | {timeout, integer()}
-    | heartbeat | {heartbeat, integer()}
-    | {filter, string() | binary()}
-    | {filter, string() | binary(), list({string(), string() | integer()})}
-    | conflicts
-    | {style, string() | binary()}
-    | descending
-    | {view, string() | binary()}
-    | {doc_ids, list()}.
+                               | include_docs
+                               | {since, integer()}
+                               | {timeout, integer()}
+                               | heartbeat | {heartbeat, integer()}
+                               | {filter, string() | binary()}
+                               | {filter, string() | binary(), list({string(), string() | integer()})}
+                               | conflicts
+                               | {style, string() | binary()}
+                               | descending
+                               | {view, string() | binary()}
+                               | {doc_ids, list()}.
 -type changes_stream_options() :: list(changes_stream_option()).
 
 -type stale() :: ok | update_after.
 
 -type view_option() :: {key, binary()} | {start_docid, binary()}
-    | {end_docid, binary()} | {start_key, binary()}
-    | {end_key, binary()} | {limit, integer()}
-    | {stale, stale()}
-    | descending
-    | {skip, integer()}
-    | group | {group_level, exact | integer()}
-    | reduce | {reduce, boolean()}
-    | inclusive_end | include_docs | conflicts
-    | {list, binary()}
-    | {keys, list(binary())}.
+                     | {end_docid, binary()} | {start_key, binary()}
+                     | {end_key, binary()} | {limit, integer()}
+                     | {stale, stale()}
+                     | descending
+                     | {skip, integer()}
+                     | group | {group_level, exact | integer()}
+                     | reduce | {reduce, boolean()}
+                     | inclusive_end | include_docs | conflicts
+                     | {list, binary()}
+                     | {keys, list(binary())}.
 
 -type view_options() :: list(view_option()).
 
 -record(view_query_args, {
-        method = get :: atom(),
-        options = [] :: view_options(),
-        keys = [] :: list(binary())}).
+                          method = get :: atom(),
+                          options = [] :: view_options(),
+                          keys = [] :: list(binary())}).
 
 -type view_query_args() :: #view_query_args{}.
 
 -record(server, {
-    url,
-    options = [] :: list()
-}).
+                 url,
+                 options = [] :: list()
+                }).
 
 -type server() :: #server{}.
 
-% record to keep database information
+                                                % record to keep database information
 -record(db, {
-    server :: server(),
-    name :: string(),
-    options = [] :: list()
-}).
+             server :: server(),
+             name :: binary(),
+             options = [] :: list()
+            }).
 
 -type db() :: #db{}.
 
 -record(server_uuids, {
-    server_url,
-    uuids
-}).
+                       server_url,
+                       uuids
+                      }).
 
 -record(view, {
-    db :: db(),
-    name :: string(),
-    options :: iolist(),
-    method :: atom(),
-    body :: iolist(),
-    headers :: list(),
-    url_parts :: list(),
-    url :: string()
-}).
+               db :: db(),
+               name :: string(),
+               options :: iolist(),
+               method :: atom(),
+               body :: iolist(),
+               headers :: list(),
+               url_parts :: list(),
+               url :: string()
+              }).
 
 -type view() :: #view{}.
 
 -record(changes_args, {
-        type = normal,
-        since = 0,
-        http_options = []}).
+                       type = normal,
+                       since = 0,
+                       http_options = []}).
 -type changes_args() :: #changes_args{}.
 
 -record(gen_changes_state, {
-    stream_ref,
-    last_seq=0,
-    mod,
-    modstate,
-    db,
-    options}).
+                            stream_ref,
+                            last_seq=0,
+                            mod,
+                            modstate,
+                            db,
+                            options}).
 
 -define(USER_AGENT, "couchbeam/0.9.0").
 
 -define(DEPRECATED(Old, New, When),
-    couchbeam_util:deprecated(Old, New, When)).
+        couchbeam_util:deprecated(Old, New, When)).
