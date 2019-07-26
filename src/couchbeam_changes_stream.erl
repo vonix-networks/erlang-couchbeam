@@ -58,11 +58,11 @@ init_stream(Parent, Owner, StreamRef, Db, Options) ->
 
     %% feed type
     {FeedType, FinalOptions} = case proplists:get_value(feed, Options1) of
-        undefined ->
-            {continuous, [{feed, continuous} | Options1]};
-        Type ->
-            {Type, Options1}
-    end,
+                                   undefined ->
+                                       {continuous, [{feed, continuous} | Options1]};
+                                   Type ->
+                                       {Type, Options1}
+                               end,
 
     %% Get since
     Since = proplists:get_value(since, FinalOptions, 0),
@@ -111,13 +111,13 @@ do_init_stream(#state{mref=MRef,
     %% instead of a GET to make sure it will be accepted whatever the
     %% number of doc ids given.
     {DocIds, Options1} = case proplists:get_value(doc_ids, Options) of
-        undefined ->
-            {[], Options};
-        [] ->
-             {[], Options};
-        Ids ->
-            {Ids, proplists:delete(doc_ids, Options)}
-    end,
+                             undefined ->
+                                 {[], Options};
+                             [] ->
+                                 {[], Options};
+                             Ids ->
+                                 {Ids, proplists:delete(doc_ids, Options)}
+                         end,
 
     %% make the changes url
     Url = hackney_url:make_url(couchbeam_httpc:server_url(Server),
@@ -125,13 +125,13 @@ do_init_stream(#state{mref=MRef,
                                Options1),
 
     {ok, ClientRef} = case DocIds of
-        [] ->
-            couchbeam_httpc:request(get, Url, [], <<>>, ConnOpts1);
-        DocIds ->
-            Body =  couchbeam_ejson:encode({[{<<"doc_ids">>, DocIds}]}),
-            Headers = [{<<"Content-Type">>, <<"application/json">>}],
-            couchbeam_httpc:request(post, Url, Headers, Body, ConnOpts1)
-    end,
+                          [] ->
+                              couchbeam_httpc:request(get, Url, [], <<>>, ConnOpts1);
+                          DocIds ->
+                              Body =  couchbeam_ejson:encode({[{<<"doc_ids">>, DocIds}]}),
+                              Headers = [{<<"Content-Type">>, <<"application/json">>}],
+                              couchbeam_httpc:request(post, Url, Headers, Body, ConnOpts1)
+                      end,
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
@@ -139,16 +139,16 @@ do_init_stream(#state{mref=MRef,
         {hackney_response, ClientRef, {status, 200, _}} ->
             State1 = State#state{client_ref=ClientRef},
             DecoderFun = case FeedType of
-                longpoll ->
-                    jsx:decoder(?MODULE, [State1], [stream]);
-                _ ->
-                    nil
-            end,
+                             longpoll ->
+                                 jsx:decoder(?MODULE, [State1], [stream]);
+                             _ ->
+                                 nil
+                         end,
             {ok, State1#state{decoder=DecoderFun}};
         {hackney_response, ClientRef, {error, Reason}} ->
             exit(Reason)
     after ?TIMEOUT ->
-           exit(timeout)
+            exit(timeout)
     end.
 
 
@@ -168,7 +168,7 @@ loop(#state{owner=Owner,
         {hackney_response, ClientRef, done} ->
             maybe_reconnect(State);
         {hackney_response, ClientRef, <<"\n">>} ->
-             maybe_continue(State);
+            maybe_continue(State);
         {hackney_response, ClientRef, Data} when is_binary(Data) ->
             decode_data(Data, State);
         {hackney_response, ClientRef, Error} ->
@@ -183,7 +183,7 @@ maybe_reconnect(#state{ref=Ref,
                        options=Options,
                        feed_type=longpoll,
                        reconnect_after=After}=State)
-        when is_integer(After) ->
+  when is_integer(After) ->
     %% longpoll connections, we will restart after the delay
 
     %% update the state so we will restart on the last sequence
@@ -239,55 +239,55 @@ wait_reconnect(#state{parent=Parent,
 
 
 seq(Props,#state{owner=Owner,ref=Ref}) ->
-  Seq = couchbeam_util:get_value(<<"seq">>, Props),
-  put(last_seq, Seq),
-  Owner ! {Ref, {change, {Props}}}.
+    Seq = couchbeam_util:get_value(<<"seq">>, Props),
+    put(last_seq, Seq),
+    Owner ! {Ref, {change, {Props}}}.
 
 decode(Data) ->
-  jsx:decode(Data,[return_tail,stream]).
+    jsx:decode(Data,[return_tail,stream]).
 
 decodefun(nil) ->
-  fun(Data) -> decode(Data) end;
+    fun(Data) -> decode(Data) end;
 decodefun(Fun) ->
-  Fun.
+    Fun.
 
 decode_with_tail(Data, Fun, State) ->
-  case (decodefun(Fun))(Data) of
-    {with_tail,Props,Rest} ->
-      seq(Props,State),
-      decode_with_tail(Rest,decodefun(nil),State);
-    Other -> Other
-  end.
+    case (decodefun(Fun))(Data) of
+        {with_tail,Props,Rest} ->
+            seq(Props,State),
+            decode_with_tail(Rest,decodefun(nil),State);
+        Other -> Other
+    end.
 
 decode_data(Data, #state{feed_type=continuous,
-  decoder=DecodeFun}=State) ->
+                         decoder=DecodeFun}=State) ->
 
-  {incomplete, DecodeFun2} =
-    try
-      decode_with_tail(Data,DecodeFun,State)
-    catch error:badarg -> exit(badarg)
-    end,
+    {incomplete, DecodeFun2} =
+        try
+            decode_with_tail(Data,DecodeFun,State)
+        catch error:badarg -> exit(badarg)
+        end,
 
-  try DecodeFun2(end_stream) of
-    Props ->
-      seq(Props,State),
-      maybe_continue(State#state{decoder=nil})
-  catch error:badarg -> maybe_continue(State#state{decoder=DecodeFun2})
-  end;
+    try DecodeFun2(end_stream) of
+        Props ->
+            seq(Props,State),
+            maybe_continue(State#state{decoder=nil})
+    catch error:badarg -> maybe_continue(State#state{decoder=DecodeFun2})
+    end;
 decode_data(Data, #state{client_ref=ClientRef,
                          decoder=DecodeFun}=State) ->
     try
         {incomplete, DecodeFun2} = DecodeFun(Data),
         try DecodeFun2(end_stream) of done ->
-            %% stop the request
-            {ok, _} = hackney:stop_async(ClientRef),
-            %% skip the rest of the body so the socket is
-            %% replaced in the pool
-            hackney:skip_body(ClientRef),
-            %% maybe reconnect
-            maybe_reconnect(State)
+                %% stop the request
+                {ok, _} = hackney:stop_async(ClientRef),
+                %% skip the rest of the body so the socket is
+                %% replaced in the pool
+                hackney:skip_body(ClientRef),
+                %% maybe reconnect
+                maybe_reconnect(State)
         catch error:badarg ->
-            maybe_continue(State#state{decoder=DecodeFun2})
+                maybe_continue(State#state{decoder=DecodeFun2})
         end
     catch error:badarg -> exit(badarg)
     end.
@@ -408,7 +408,7 @@ collect_object(start_object, {_, NestCount, Terms, St}) ->
     {collect_object, NestCount + 1, [[]|Terms], St};
 
 collect_object(end_object, {_, NestCount, [[], {key, Key}, Last|Terms],
-                           St}) ->
+                            St}) ->
     {collect_object, NestCount - 1, [[{Key, {[{}]}}] ++ Last] ++ Terms,
      St};
 
@@ -437,7 +437,7 @@ collect_object(end_object, {_, NestCount, [Object, Last|Terms], St}) ->
 collect_object(start_array, {_, NestCount, Terms, St}) ->
     {collect_object, NestCount, [[]|Terms], St};
 collect_object(end_array, {_, NestCount, [List, {key, Key}, Last|Terms],
-                          St}) ->
+                           St}) ->
     {collect_object, NestCount,
      [[{Key, lists:reverse(List)}] ++ Last] ++ Terms, St};
 collect_object(end_array, {_, NestCount, [List, Last|Terms], St}) ->
@@ -520,7 +520,7 @@ maybe_continue_decoding(#state{parent=Parent,
             report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
-        {wait_results1, 0, [[]], St}
+            {wait_results1, 0, [[]], St}
     end.
 
 %% @private
@@ -557,12 +557,3 @@ maybe_close(#state{client_ref=nil}) ->
     ok;
 maybe_close(#state{client_ref=Ref}) ->
     hackney:close(Ref).
-
-post_decode([{}]) ->
-    {[]};
-post_decode([{_Key, _Value} | _Rest] = PropList) ->
-    {[ {Key, post_decode(Value)} || {Key, Value} <- PropList ]};
-post_decode(List) when is_list(List) ->
-    [ post_decode(Term) || Term <- List];
-post_decode(Term) ->
-    Term.
