@@ -98,7 +98,7 @@ show(#db{server=Server, options=DBOptions}=Db
     ) ->
 
     URL = hackney_url:make_url(couchbeam_httpc:server_url(Server)
-                              ,iolist_to_binary([pcouchbeam_httpc:db_url(Db)
+                              ,iolist_to_binary([couchbeam_httpc:db_url(Db)
                                                 ,<<"/_design/">>
                                                 ,DesignName
                                                 ,<<"/_show/">>

@@ -20,6 +20,10 @@ deps: $(REBAR)
 get-deps: $(REBAR)
 	$(REBAR) get-deps
 
+.PHONY=xref
+xref: $(REBAR)
+	$(REBAR) xref
+
 $(REBAR):
 	wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 	./rebar3 local install
