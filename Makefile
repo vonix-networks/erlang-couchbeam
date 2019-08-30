@@ -8,8 +8,17 @@ compile: $(REBAR)
 clean: $(REBAR)
 	$(REBAR) clean
 
+.PHONY=dialyzer
 dialyzer: $(REBAR)
 	$(REBAR) dialyzer
+
+.PHONY=deps
+deps: $(REBAR)
+	$(REBAR) deps
+
+.PHONY=get-deps
+get-deps: $(REBAR)
+	$(REBAR) get-deps
 
 $(REBAR):
 	wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
