@@ -103,10 +103,9 @@ show(#db{server=Server, options=DBOptions}=Db
                                                 ,<<"/_show/">>
                                                 ,ShowName
                                                 ,show_doc_id(DocId)
-                                                ,get_query_string(Options)
                                                 ]
                                                )
-                              ,Options
+                              ,get_query_string(Options)
                               ),
 
     case couchbeam_httpc:db_request('get', URL, [], <<>>, DBOptions, [200]) of
@@ -119,7 +118,7 @@ get_query_string(Options) ->
     case proplists:get_value('query_string', Options) of
         'undefined' -> <<>>;
         <<>> -> <<>>;
-        <<KVs/binary>> -> <<"?", KVs/binary>>
+        <<KVs/binary>> -> <<KVs/binary>>
     end.
 
 show_doc_id('null') -> <<>>;
