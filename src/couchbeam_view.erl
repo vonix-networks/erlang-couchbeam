@@ -20,27 +20,27 @@
          show/2, show/3, show/4
         ]).
 
--spec all(Db::db()) -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec all(Db::db()) -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @doc fetch all docs
 %% @equiv fetch(Db, 'all_docs', [])
 all(Db) ->
     fetch(Db, 'all_docs', []).
 
 -spec all(Db::db(), Options::view_options())
-         -> {ok, Rows::list(ejson_object())} | {error, term()}.
+         -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @doc fetch all docs
 %% @equiv fetch(Db, 'all_docs', Options)
 all(Db, Options) ->
     fetch(Db, 'all_docs', Options).
 
--spec fetch(Db::db()) -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec fetch(Db::db()) -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @equiv fetch(Db, 'all_docs', [])
 fetch(Db) ->
     fetch(Db, 'all_docs', []).
 
 -spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
                                               ViewName::binary()})
-           -> {ok, Rows::list(ejson_object())} | {error, term()}.
+           -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @equiv fetch(Db, ViewName, [])
 fetch(Db, ViewName) ->
     fetch(Db, ViewName,[]).
@@ -48,7 +48,7 @@ fetch(Db, ViewName) ->
 
 -spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
                                               ViewName::binary()}, Options::view_options())
-           -> {ok, Rows::list(ejson_object())} | {error, term()}.
+           -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @doc Collect view results
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: <code>'all_docs'</code> to get all docs or <code>{DesignName,
