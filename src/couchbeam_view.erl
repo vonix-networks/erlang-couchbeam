@@ -69,7 +69,7 @@ fetch(Db, ViewName, Options) ->
     case stream(Db, ViewName, Options) of
         {ok, Ref} ->
             collect_view_results(Ref, []);
-        Error ->
+        {error, _}=Error ->
             Error
     end.
 
@@ -126,15 +126,14 @@ show_doc_id(<<>>) -> <<>>;
 show_doc_id(<<DocId/binary>>) -> [<<"/">>, couchbeam_util:encode_docid(DocId)].
 
 -spec stream(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                               ViewName::binary()}) -> {ok, StartRef::term(),
-                                                                        ViewPid::pid()} | {error, term()}.
+                                               ViewName::binary()}) -> {ok, StartRef::term()} | {error, term()}.
 %% @equiv stream(Db, ViewName, Client, [])
 stream(Db, ViewName) ->
     stream(Db, ViewName, []).
 
 -spec stream(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
                                                ViewName::binary()}, Options::view_options())
-            -> {ok, StartRef::term(), ViewPid::pid()} | {error, term()}.
+            -> {ok, StartRef::term()} | {error, term()}.
 %% @doc stream view results to a pid
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: 'all_docs' to get all docs or {DesignName,
