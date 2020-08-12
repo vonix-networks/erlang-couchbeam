@@ -391,6 +391,15 @@ parse_view_options([{start_docid, Value}|Rest], #view_query_args{options=Opts}=A
 parse_view_options([{end_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
     Opts1 = [{end_docid, Value}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
+
+parse_view_options([{startkey_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
+    Opts1 = [{startkey_docid, Value}|Opts],
+    parse_view_options(Rest, Args#view_query_args{options=Opts1});
+parse_view_options([{endkey_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
+    Opts1 = [{endkey_docid, Value}|Opts],
+    parse_view_options(Rest, Args#view_query_args{options=Opts1});
+
+
 parse_view_options([{start_key, Value}|Rest], #view_query_args{options=Opts}=Args) ->
     Opts1 = [{start_key, couchbeam_ejson:encode(Value)}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
