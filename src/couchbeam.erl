@@ -91,7 +91,7 @@ server_connection(Host, Port) when is_integer(Port) ->
 %%
 %%      For a description of SSL Options, look in the <a href="http://www.erlang.org/doc/apps/ssl/index.html">ssl</a> manpage.
 %%
--spec server_connection(Host::string(), Port::non_neg_integer(), Prefix::string(), OptionsList::list()) ->
+-spec server_connection(Host::string(), Port::non_neg_integer(), Prefix::binary(), OptionsList::list()) ->
           Server::server().
 %% OptionsList() = [option()]
 %% option() =
