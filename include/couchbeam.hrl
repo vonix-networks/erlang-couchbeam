@@ -109,10 +109,10 @@
 
 -type server() :: #server{}.
 
-                                                % record to keep database information
+%% record to keep database information
 -record(db, {
              server :: server(),
-             name :: string(),
+             name :: binary(),
              options = [] :: list()
             }).
 
