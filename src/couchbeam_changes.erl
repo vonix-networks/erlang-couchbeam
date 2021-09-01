@@ -74,14 +74,14 @@ follow(Db) ->
 %% the changes loop process. Can be used to monitor it or kill it
 %% when needed.</p>
 -spec follow(Db::db(), Options::changes_options()) ->
-    {ok, StreamRef::atom()} | {error, term()}.
+          {ok, StreamRef::atom()} | {error, term()}.
 follow(Db, Options) ->
     {To, Options1} = case proplists:get_value(stream_to, Options) of
-        undefined ->
-            {self(), Options};
-        Pid ->
-            {Pid, proplists:delete(stream_to, Options)}
-    end,
+                         undefined ->
+                             {self(), Options};
+                         Pid ->
+                             {Pid, proplists:delete(stream_to, Options)}
+                     end,
 
     Ref = make_ref(),
     case supervisor:start_child(couchbeam_changes_sup, [To, Ref, Db,
@@ -93,7 +93,7 @@ follow(Db, Options) ->
     end.
 
 -spec follow_once(Db::db())
-    -> {ok, LastSeq::integer(), Changes::list()} | {error,term()}.
+                 -> {ok, LastSeq::integer(), Changes::list()} | {error,term()}.
 follow_once(Db) ->
     follow_once(Db, []).
 
@@ -133,7 +133,7 @@ follow_once(Db) ->
 %% <p>Result: <code>{ok, LastSeq::integer(), Rows::list()}</code> or
 %% <code>{error, LastSeq, Error}</code>. LastSeq is the last sequence of changes.</p>
 -spec follow_once(Db::db(), Options::changes_options())
-    -> {ok, LastSeq::integer(), Changes::list()} | {error,term()}.
+                 -> {ok, LastSeq::integer(), Changes::list()} | {error,term()}.
 follow_once(Db, Options) ->
     case parse_options_once(Options, []) of
         {error, _}=Error ->
@@ -158,22 +158,22 @@ follow_once(Db, Options) ->
 
 cancel_stream(Ref) ->
     with_changes_stream(Ref, fun(Pid) ->
-                case supervisor:terminate_child(couch_view_sup, Pid) of
-                    ok ->
-                        case supervisor:delete_child(couch_view_sup, Pid) of
-                            ok ->ok;
-                            {error, not_found} -> ok;
-                            Error -> Error
-                        end;
-                    Error ->
-                        Error
-                end
-        end).
+                                     case supervisor:terminate_child(couch_view_sup, Pid) of
+                                         ok ->
+                                             case supervisor:delete_child(couch_view_sup, Pid) of
+                                                 ok ->ok;
+                                                 {error, not_found} -> ok;
+                                                 Error -> Error
+                                             end;
+                                         Error ->
+                                             Error
+                                     end
+                             end).
 
 stream_next(Ref) ->
     with_changes_stream(Ref, fun(Pid) ->
-                Pid ! {Ref, stream_next}
-        end).
+                                     Pid ! {Ref, stream_next}
+                             end).
 
 %% @private
 collect_changes(Ref) ->
@@ -207,13 +207,13 @@ changes_request(#db{server=Server, options=ConnOptions}=Db, Options) ->
     %% instead of a GET to make sure it will be accepted whatever the
     %% number of doc ids given.
     {DocIds, Options1} = case proplists:get_value(doc_ids, Options) of
-        undefined ->
-            {[], Options};
-        [] ->
-             {[], Options};
-        Ids ->
-            {Ids, proplists:delete(doc_ids, Options)}
-    end,
+                             undefined ->
+                                 {[], Options};
+                             [] ->
+                                 {[], Options};
+                             Ids ->
+                                 {Ids, proplists:delete(doc_ids, Options)}
+                         end,
 
     %% make url
     Url = hackney_url:make_url(couchbeam_httpc:server_url(Server),
@@ -222,15 +222,15 @@ changes_request(#db{server=Server, options=ConnOptions}=Db, Options) ->
 
     %% do the request
     Resp = case DocIds of
-        [] ->
-            couchbeam_httpc:db_request(get, Url, [], <<>>, ConnOptions,
-                                       [200, 202]);
-        _ ->
-            Body =  couchbeam_ejson:encode({[{<<"doc_ids">>, DocIds}]}),
-            Headers = [{<<"Content-Type">>, <<"application/json">>}],
-            couchbeam_httpc:db_request(post, Url, Headers, Body, ConnOptions,
-                                       [200, 202])
-    end,
+               [] ->
+                   couchbeam_httpc:db_request(get, Url, [], <<>>, ConnOptions,
+                                              [200, 202]);
+               _ ->
+                   Body =  couchbeam_ejson:encode({[{<<"doc_ids">>, DocIds}]}),
+                   Headers = [{<<"Content-Type">>, <<"application/json">>}],
+                   couchbeam_httpc:db_request(post, Url, Headers, Body, ConnOptions,
+                                              [200, 202])
+           end,
 
     case Resp of
         {ok, _, _, Ref} ->

@@ -37,13 +37,13 @@ json_body(Ref) ->
 
 make_headers(Method, Url, Headers, Options) ->
     Headers1 = case couchbeam_util:get_value(<<"Accept">>, Headers) of
-        undefined ->
-            [{<<"Accept">>, <<"application/json, */*;q=0.9">>} | Headers];
-        _ ->
-            Headers
-    end,
-   {Headers2, Options1} = maybe_oauth_header(Method, Url, Headers1, Options),
-   maybe_proxyauth_header(Headers2, Options1).
+                   undefined ->
+                       [{<<"Accept">>, <<"application/json, */*;q=0.9">>} | Headers];
+                   _ ->
+                       Headers
+               end,
+    {Headers2, Options1} = maybe_oauth_header(Method, Url, Headers1, Options),
+    maybe_proxyauth_header(Headers2, Options1).
 
 
 maybe_oauth_header(Method, Url, Headers, Options) ->
@@ -56,12 +56,12 @@ maybe_oauth_header(Method, Url, Headers, Options) ->
     end.
 
 maybe_proxyauth_header(Headers, Options) ->
-  case couchbeam_util:get_value(proxyauth, Options) of
-    undefined ->
-      {Headers, Options};
-    ProxyauthProps ->
-      {lists:append([ProxyauthProps,Headers]), proplists:delete(proxyauth, Options)}
-  end.
+    case couchbeam_util:get_value(proxyauth, Options) of
+        undefined ->
+            {Headers, Options};
+        ProxyauthProps ->
+            {lists:append([ProxyauthProps,Headers]), proplists:delete(proxyauth, Options)}
+    end.
 
 db_resp({ok, Ref}=Resp, _Expect) when is_reference(Ref) ->
     Resp;
@@ -140,8 +140,8 @@ reply_att({ok, 409, _, Ref}) ->
     hackney:skip_body(Ref),
     {error, conflict};
 reply_att({ok, Status, _, Ref}) when Status =:= 200 orelse Status =:= 201 ->
-  {[{<<"ok">>, true}|R]} = couchbeam_httpc:json_body(Ref),
-  {ok, {R}};
+    {[{<<"ok">>, true}|R]} = couchbeam_httpc:json_body(Ref),
+    {ok, {R}};
 reply_att({ok, Status, Headers, Ref}) ->
     {ok, Body} = hackney:body(Ref),
     {error, {bad_response, {Status, Headers, Body}}};
@@ -175,8 +175,8 @@ wait_mp_doc(Ref, Buffer) ->
                     %% header.
                     AttNames = [AttName || {AttName, _} <- Atts],
                     NState = {Ref, fun() ->
-                                    wait_mp_att(Ref, {nil, AttNames})
-                            end},
+                                           wait_mp_att(Ref, {nil, AttNames})
+                                   end},
                     {doc, Doc, NState}
             end;
         mp_mixed ->
@@ -202,16 +202,16 @@ wait_mp_att(Ref, {AttName, AttNames}) ->
                 undefined ->
                     [Name | Rest] = AttNames,
                     NState = {Ref, fun() ->
-                                    wait_mp_att(Ref, {Name, Rest})
-                            end},
+                                           wait_mp_att(Ref, {Name, Rest})
+                                   end},
                     {att, Name, NState};
                 CDisp ->
                     {_, Props} = content_disposition(CDisp),
                     Name = proplists:get_value(<<"filename">>, Props),
                     [_ | Rest] = AttNames,
                     NState = {Ref, fun() ->
-                                    wait_mp_att(Ref, {Name, Rest})
-                            end},
+                                           wait_mp_att(Ref, {Name, Rest})
+                                   end},
                     {att, Name, NState}
             end;
         {body, Data} ->
@@ -233,78 +233,78 @@ wait_mp_att(Ref, {AttName, AttNames}) ->
 %% @hidden
 content_disposition(Data) ->
     hackney_bstr:token_ci(Data, fun
-            (_Rest, <<>>) ->
-                {error, badarg};
-            (Rest, Disposition) ->
-                hackney_bstr:params(Rest, fun
-                        (<<>>, Params) -> {Disposition, Params};
-                        (_Rest2, _) -> {error, badarg}
-                    end)
-        end).
+                                    (_Rest, <<>>) ->
+                                 {error, badarg};
+                              (Rest, Disposition) ->
+                                 hackney_bstr:params(Rest, fun
+                                                               (<<>>, Params) -> {Disposition, Params};
+                                                         (_Rest2, _) -> {error, badarg}
+                                                    end)
+                         end).
 
 %% @hidden
 len_doc_to_mp_stream(Atts, Boundary, {Props}) ->
     {AttsSize, Stubs} = lists:foldl(fun(Att, {AccSize, AccAtts}) ->
-                    {AttLen, Name, Type, Encoding, _Msg} = att_info(Att),
-                    AccSize1 = AccSize +
-                               4 + %% \r\n\r\n
-                               AttLen +
-                               byte_size(hackney_bstr:to_binary(AttLen)) +
-                               4 +  %% "\r\n--"
-                               byte_size(Boundary) +
-                               byte_size(Name) +
-                               byte_size(Type) +
-                               byte_size(<<"\r\nContent-Disposition: attachment; filename=\"\"">> ) +
-                               byte_size(<<"\r\nContent-Type: ">>) +
-                               byte_size(<<"\r\nContent-Length: ">>) +
-                               case Encoding of
-                                   <<"identity">> ->
-                                       0;
-                                   _ ->
-                                       byte_size(Encoding) +
-                                       byte_size(<<"\r\nContent-Encoding: ">>)
-                               end,
-                    AccAtts1 = [{Name, {[{<<"content_type">>, Type},
-                                         {<<"length">>, AttLen},
-                                         {<<"follows">>, true},
-                                         {<<"encoding">>, Encoding}]}}
-                                | AccAtts],
-                    {AccSize1, AccAtts1}
-            end, {0, []}, Atts),
+                                            {AttLen, Name, Type, Encoding, _Msg} = att_info(Att),
+                                            AccSize1 = AccSize +
+                                                4 + %% \r\n\r\n
+                                                AttLen +
+                                                byte_size(hackney_bstr:to_binary(AttLen)) +
+                                                4 +  %% "\r\n--"
+                                                byte_size(Boundary) +
+                                                byte_size(Name) +
+                                                byte_size(Type) +
+                                                byte_size(<<"\r\nContent-Disposition: attachment; filename=\"\"">> ) +
+                                                byte_size(<<"\r\nContent-Type: ">>) +
+                                                byte_size(<<"\r\nContent-Length: ">>) +
+                                                case Encoding of
+                                                    <<"identity">> ->
+                                                        0;
+                                                    _ ->
+                                                        byte_size(Encoding) +
+                                                            byte_size(<<"\r\nContent-Encoding: ">>)
+                                                end,
+                                            AccAtts1 = [{Name, {[{<<"content_type">>, Type},
+                                                                 {<<"length">>, AttLen},
+                                                                 {<<"follows">>, true},
+                                                                 {<<"encoding">>, Encoding}]}}
+                                                       | AccAtts],
+                                            {AccSize1, AccAtts1}
+                                    end, {0, []}, Atts),
 
     Doc1 = case couchbeam_util:get_value(<<"_attachments">>, Props) of
-        undefined ->
-            {Props ++ [{<<"_attachments">>, {Stubs}}]};
-        {OldAtts} ->
-            %% remove updated attachments from the old list of
-            %% attachments
-            OldAtts1 = lists:foldl(fun({Name, AttProps}, Acc) ->
-                            case couchbeam_util:get_value(Name, Stubs) of
-                                undefined ->
-                                    [{Name, AttProps} | Acc];
-                                _ ->
-                                    Acc
-                            end
-                    end, [], OldAtts),
-            %% update the list of the attachnebts with the attachments
-            %% that will be sent in the multipart
-            FinalAtts = lists:reverse(OldAtts1) ++ Stubs,
-            {lists:keyreplace(<<"_attachments">>, 1, Props,
-                             {<<"_attachments">>, {FinalAtts}})}
-    end,
+               undefined ->
+                   {Props ++ [{<<"_attachments">>, {Stubs}}]};
+               {OldAtts} ->
+                   %% remove updated attachments from the old list of
+                   %% attachments
+                   OldAtts1 = lists:foldl(fun({Name, AttProps}, Acc) ->
+                                                  case couchbeam_util:get_value(Name, Stubs) of
+                                                      undefined ->
+                                                          [{Name, AttProps} | Acc];
+                                                      _ ->
+                                                          Acc
+                                                  end
+                                          end, [], OldAtts),
+                   %% update the list of the attachnebts with the attachments
+                   %% that will be sent in the multipart
+                   FinalAtts = lists:reverse(OldAtts1) ++ Stubs,
+                   {lists:keyreplace(<<"_attachments">>, 1, Props,
+                                     {<<"_attachments">>, {FinalAtts}})}
+           end,
 
     %% eencode the doc
     JsonDoc = couchbeam_ejson:encode(Doc1),
 
     %% calculate the final size with the doc part
     FinalSize = 2 + % "--"
-                byte_size(Boundary) +
-                36 + % "\r\ncontent-type: application/json\r\n\r\n"
-                byte_size(JsonDoc) +
-                4 + % "\r\n--"
-                byte_size(Boundary) +
-                + AttsSize +
-                2, % "--"
+        byte_size(Boundary) +
+        36 + % "\r\ncontent-type: application/json\r\n\r\n"
+        byte_size(JsonDoc) +
+        4 + % "\r\n--"
+        byte_size(Boundary) +
+        + AttsSize +
+        2, % "--"
 
     {FinalSize, JsonDoc, Doc1}.
 
@@ -338,17 +338,17 @@ send_mp_doc_atts([Att | Rest], Ref, Doc, Boundary) ->
     BinAttLen = hackney_bstr:to_binary(AttLen),
     AttHeadersParts = [<<"--", Boundary/binary >>,
                        <<"Content-Disposition: attachment; filename=\"", Name/binary, "\"" >>,
-                      <<"Content-Type: ", Type/binary >>,
-                      <<"Content-Length: ", BinAttLen/binary >>],
+                       <<"Content-Type: ", Type/binary >>,
+                       <<"Content-Length: ", BinAttLen/binary >>],
 
     AttHeadersParts1 = AttHeadersParts ++
-            case Encoding of
-                <<"identity">> ->
-                    [<<>>, <<>>];
-                _ ->
-                    [<<"Content-Encoding: ", Encoding/binary >>, <<>>,
-                     <<>>]
-            end,
+        case Encoding of
+            <<"identity">> ->
+                [<<>>, <<>>];
+            _ ->
+                [<<"Content-Encoding: ", Encoding/binary >>, <<>>,
+                 <<>>]
+        end,
     AttHeadersBin = hackney_bstr:join(AttHeadersParts1, <<"\r\n">>),
 
     %% first send the att headers
@@ -412,7 +412,7 @@ att_info({Name, Fun, Len, Encoding}) when is_function(Fun) ->
 att_info({Name, Bin, CType, Encoding}) when is_binary(Bin) ->
     {byte_size(Bin), Name, CType, Encoding, Bin};
 att_info({Name, {Fun, _Acc0}=Msg, Len, CType, Encoding})
-                when is_function(Fun) ->
+  when is_function(Fun) ->
     {Len, Name, CType, Encoding, Msg};
 att_info({Name, Fun, Len, CType, Encoding}) when is_function(Fun) ->
     {Len, Name, CType, Encoding, Fun}.

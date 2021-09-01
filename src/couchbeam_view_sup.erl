@@ -5,7 +5,7 @@
 
 -module(couchbeam_view_sup).
 
- -behaviour(supervisor).
+-behaviour(supervisor).
 
 %% API.
 -export([start_link/0]).

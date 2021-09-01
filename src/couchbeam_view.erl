@@ -25,7 +25,7 @@ all(Db) ->
     fetch(Db, 'all_docs', []).
 
 -spec all(Db::db(), Options::view_options())
-        -> {ok, Rows::list(ejson_object())} | {error, term()}.
+         -> {ok, Rows::list(ejson_object())} | {error, term()}.
 %% @doc fetch all docs
 %% @equiv fetch(Db, 'all_docs', Options)
 all(Db, Options) ->
@@ -37,16 +37,16 @@ fetch(Db) ->
     fetch(Db, 'all_docs', []).
 
 -spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()})
-    -> {ok, Rows::list(ejson_object())} | {error, term()}.
+                                              ViewName::string()})
+           -> {ok, Rows::list(ejson_object())} | {error, term()}.
 %% @equiv fetch(Db, ViewName, [])
 fetch(Db, ViewName) ->
     fetch(Db, ViewName,[]).
 
 
 -spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}, Options::view_options())
-     -> {ok, Rows::list(ejson_object())} | {error, term()}.
+                                              ViewName::string()}, Options::view_options())
+           -> {ok, Rows::list(ejson_object())} | {error, term()}.
 %% @doc Collect view results
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: <code>'all_docs'</code> to get all docs or <code>{DesignName,
@@ -73,15 +73,15 @@ fetch(Db, ViewName, Options) ->
 
 
 -spec stream(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}) -> {ok, StartRef::term(),
-        ViewPid::pid()} | {error, term()}.
+                                               ViewName::string()}) -> {ok, StartRef::term(),
+                                                                        ViewPid::pid()} | {error, term()}.
 %% @equiv stream(Db, ViewName, Client, [])
 stream(Db, ViewName) ->
     stream(Db, ViewName, []).
 
 -spec stream(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}, Options::view_options())
-    -> {ok, StartRef::term(), ViewPid::pid()} | {error, term()}.
+                                               ViewName::string()}, Options::view_options())
+            -> {ok, StartRef::term(), ViewPid::pid()} | {error, term()}.
 %% @doc stream view results to a pid
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: 'all_docs' to get all docs or {DesignName,
@@ -139,54 +139,54 @@ stream(Db, ViewName) ->
 %%  </ul></p>
 %%
 %% <p> Return <code>{ok, StartRef, ViewPid}</code> or <code>{error,
-%Error}</code>. Ref can be
+                                                %Error}</code>. Ref can be
 %% used to disctint all changes from this pid. ViewPid is the pid of
 %% the view loop process. Can be used to monitor it or kill it
 %% when needed.</p>
 stream(Db, ViewName, Options) ->
     {To, Options1} = case proplists:get_value(stream_to, Options) of
-        undefined ->
-            {self(), Options};
-        Pid ->
-            {Pid, proplists:delete(stream_to, Options)}
-    end,
+                         undefined ->
+                             {self(), Options};
+                         Pid ->
+                             {Pid, proplists:delete(stream_to, Options)}
+                     end,
     make_view(Db, ViewName, Options1, fun(Args, Url) ->
-                Ref = make_ref(),
-                Req = {Db, Url, Args},
-                case supervisor:start_child(couchbeam_view_sup, [To,
-                                                                 Ref,
-                                                                 Req,
-                                                                 Options]) of
-                    {ok, _Pid} ->
-                        {ok, Ref};
-                    Error ->
-                        Error
-                end
-        end).
+                                              Ref = make_ref(),
+                                              Req = {Db, Url, Args},
+                                              case supervisor:start_child(couchbeam_view_sup, [To,
+                                                                                               Ref,
+                                                                                               Req,
+                                                                                               Options]) of
+                                                  {ok, _Pid} ->
+                                                      {ok, Ref};
+                                                  Error ->
+                                                      Error
+                                              end
+                                      end).
 
 
 cancel_stream(Ref) ->
     with_view_stream(Ref, fun(Pid) ->
-                case supervisor:terminate_child(couch_view_sup, Pid) of
-                    ok ->
-                        case supervisor:delete_child(couch_view_sup,
-                                                     Pid) of
-                            ok ->
-                                ok;
-                            {error, not_found} ->
-                                ok;
-                            Error ->
-                                Error
-                        end;
-                    Error ->
-                        Error
-                end
-        end).
+                                  case supervisor:terminate_child(couch_view_sup, Pid) of
+                                      ok ->
+                                          case supervisor:delete_child(couch_view_sup,
+                                                                       Pid) of
+                                              ok ->
+                                                  ok;
+                                              {error, not_found} ->
+                                                  ok;
+                                              Error ->
+                                                  Error
+                                          end;
+                                      Error ->
+                                          Error
+                                  end
+                          end).
 
 stream_next(Ref) ->
     with_view_stream(Ref, fun(Pid) ->
-                Pid ! {Ref, stream_next}
-        end).
+                                  Pid ! {Ref, stream_next}
+                          end).
 
 -spec count(Db::db()) -> integer() | {error, term()}.
 %% @equiv count(Db, 'all_docs', [])
@@ -194,14 +194,14 @@ count(Db) ->
     count(Db, 'all_docs', []).
 
 -spec count(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}) -> integer() | {error, term()}.
+                                              ViewName::string()}) -> integer() | {error, term()}.
 %% @equiv count(Db, ViewName, [])
 count(Db, ViewName) ->
     count(Db, ViewName, []).
 
 -spec count(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}, Options::view_options())
-    -> integer() | {error, term()}.
+                                              ViewName::string()}, Options::view_options())
+           -> integer() | {error, term()}.
 %% @doc count number of doc in a view (or all docs)
 count(Db, ViewName, Options)->
     %% make sure we set the limit to 0 here so we don't have to get all
@@ -210,14 +210,14 @@ count(Db, ViewName, Options)->
 
     %% make the request
     make_view(Db, ViewName, Options1, fun(Args, Url) ->
-                case view_request(Db, Url, Args) of
-                    {ok, _, _, Ref} ->
-                        {Props} = couchbeam_httpc:json_body(Ref),
-                        couchbeam_util:get_value(<<"total_rows">>, Props);
-                    Error ->
-                        Error
-                end
-    end).
+                                              case view_request(Db, Url, Args) of
+                                                  {ok, _, _, Ref} ->
+                                                      {Props} = couchbeam_httpc:json_body(Ref),
+                                                      couchbeam_util:get_value(<<"total_rows">>, Props);
+                                                  Error ->
+                                                      Error
+                                              end
+                                      end).
 
 -spec first(Db::db()) -> {ok, Row::ejson_object()} | {error, term()}.
 %% @equiv first(Db, 'all_docs', [])
@@ -225,16 +225,16 @@ first(Db) ->
     first(Db, 'all_docs', []).
 
 -spec first(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()})
-    -> {ok, Row::ejson_object()} | {error, term()}.
+                                              ViewName::string()})
+           -> {ok, Row::ejson_object()} | {error, term()}.
 %% @equiv first(Db, ViewName, [])
 first(Db, ViewName) ->
     first(Db, ViewName,[]).
 
 
 -spec first(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}, Options::view_options())
-     -> {ok, Rows::ejson_object()} | {error, term()}.
+                                              ViewName::string()}, Options::view_options())
+           -> {ok, Rows::ejson_object()} | {error, term()}.
 %% @doc get first result of a view
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: 'all_docs' to get all docs or {DesignName,
@@ -258,31 +258,31 @@ first(Db, ViewName, Options) ->
 
     %% make the request
     make_view(Db, ViewName, Options1, fun(Args, Url) ->
-                case view_request(Db, Url, Args) of
-                    {ok, _, _, Ref} ->
-                        {Props} = couchbeam_httpc:json_body(Ref),
-                        case couchbeam_util:get_value(<<"rows">>, Props) of
-                            [] ->
-                                {ok, nil};
-                            [Row] ->
-                                {ok, Row}
-                        end;
-                    Error ->
-                        Error
-                end
-    end).
+                                              case view_request(Db, Url, Args) of
+                                                  {ok, _, _, Ref} ->
+                                                      {Props} = couchbeam_httpc:json_body(Ref),
+                                                      case couchbeam_util:get_value(<<"rows">>, Props) of
+                                                          [] ->
+                                                              {ok, nil};
+                                                          [Row] ->
+                                                              {ok, Row}
+                                                      end;
+                                                  Error ->
+                                                      Error
+                                              end
+                                      end).
 
 -spec fold(Function::function(), Acc::any(), Db::db(),
-        ViewName::'all_docs' | {DesignName::string(), ViewName::string()})
-    -> list(term()) | {error, term()}.
+           ViewName::'all_docs' | {DesignName::string(), ViewName::string()})
+          -> list(term()) | {error, term()}.
 %% @equiv fold(Function, Acc, Db, ViewName, [])
 fold(Function, Acc, Db, ViewName) ->
     fold(Function, Acc, Db, ViewName, []).
 
 -spec fold(Function::function(), Acc::any(), Db::db(),
-        ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}, Options::view_options())
-    -> list(term()) | {error, term()}.
+           ViewName::'all_docs' | {DesignName::string(),
+                                   ViewName::string()}, Options::view_options())
+          -> list(term()) | {error, term()}.
 %% @doc call Function(Row, AccIn) on succesive row, starting with
 %% AccIn == Acc. Function/2 must return a new list accumultator or the
 %% atom <em>done</em> to stop fetching results. Acc0 is returned if the
@@ -302,25 +302,25 @@ fold(Function, Acc, Db, ViewName, Options) ->
     end.
 
 -spec foreach(Function::function(), Db::db(),
-        ViewName::'all_docs' | {DesignName::string(), ViewName::string()})
-    -> list(term()) | {error, term()}.
+              ViewName::'all_docs' | {DesignName::string(), ViewName::string()})
+             -> list(term()) | {error, term()}.
 %% @equiv foreach(Function, Db, ViewName, [])
 foreach(Function, Db, ViewName) ->
     foreach(Function, Db, ViewName, []).
 
 -spec foreach(Function::function(),  Db::db(),
-        ViewName::'all_docs' | {DesignName::string(),
-        ViewName::string()}, Options::view_options())
-    -> list(term()) | {error, term()}.
+              ViewName::'all_docs' | {DesignName::string(),
+                                      ViewName::string()}, Options::view_options())
+             -> list(term()) | {error, term()}.
 %% @doc call Function(Row) on succesive row. Example:
 %% ```
 %% couchbeam_view:foreach(fun(Row) -> io:format("got row ~p~n", [Row]) end, Db, 'all_docs').
 %% '''
 foreach(Function, Db, ViewName, Options) ->
     FunWrapper = fun(Row, _Acc) ->
-            Function(Row),
-            ok
-    end,
+                         Function(Row),
+                         ok
+                 end,
     fold(FunWrapper, ok, Db, ViewName, Options).
 
 
@@ -408,9 +408,9 @@ parse_view_options([{list, Value}|Rest], #view_query_args{options=Opts}=Args) ->
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([{keys, Value}|Rest], Args) ->
     parse_view_options(Rest, Args#view_query_args{method=post,
-            keys=Value});
+                                                  keys=Value});
 parse_view_options([{Key, Value}|Rest], #view_query_args{options=Opts}=Args)
-        when is_list(Key) ->
+  when is_list(Key) ->
     Opts1 = [{Key, Value}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([_|Rest], Args) ->
@@ -477,7 +477,7 @@ collect_view_results(Ref, Acc) ->
             Rows = lists:reverse(Acc),
             {error, Error, Rows}
     after 10000 ->
-              {error, timeout}
+            {error, timeout}
     end.
 
 view_request(#db{options=Opts}, Url, Args) ->
@@ -487,7 +487,7 @@ view_request(#db{options=Opts}, Url, Args) ->
                                        Opts, [200]);
         post ->
             Body = couchbeam_ejson:encode(
-                    {[{<<"keys">>, Args#view_query_args.keys}]}
+                     {[{<<"keys">>, Args#view_query_args.keys}]}
                     ),
 
             Hdrs = [{<<"Content-Type">>, <<"application/json">>}],
@@ -525,24 +525,24 @@ basic_test() ->
     {ok, Db} = couchbeam:create_db(Server, "couchbeam_testdb"),
 
     DesignDoc = {[
-        {<<"_id">>, <<"_design/couchbeam">>},
-        {<<"language">>,<<"javascript">>},
-        {<<"views">>,
-            {[{<<"test">>,
-                {[{<<"map">>,
-                    <<"function (doc) {\n if (doc.type == \"test\") {\n emit(doc._id, doc);\n}\n}">>
-                }]}
-            },{<<"test2">>,
-                {[{<<"map">>,
-                    <<"function (doc) {\n if (doc.type == \"test2\") {\n emit(doc._id, null);\n}\n}">>
-                }]}
-            }]}
-        }
-    ]},
+                  {<<"_id">>, <<"_design/couchbeam">>},
+                  {<<"language">>,<<"javascript">>},
+                  {<<"views">>,
+                   {[{<<"test">>,
+                      {[{<<"map">>,
+                         <<"function (doc) {\n if (doc.type == \"test\") {\n emit(doc._id, doc);\n}\n}">>
+                        }]}
+                     },{<<"test2">>,
+                        {[{<<"map">>,
+                           <<"function (doc) {\n if (doc.type == \"test2\") {\n emit(doc._id, null);\n}\n}">>
+                          }]}
+                       }]}
+                  }
+                 ]},
 
     Doc = {[
-        {<<"type">>, <<"test">>}
-    ]},
+            {<<"type">>, <<"test">>}
+           ]},
 
     couchbeam:save_docs(Db, [DesignDoc, Doc, Doc]),
     couchbeam:ensure_full_commit(Db),
@@ -561,11 +561,11 @@ basic_test() ->
     ?assertEqual(<<"test">>, proplists:get_value(<<"type">>, Doc1)),
 
     Docs = [
-        {[{<<"_id">>, <<"test1">>}, {<<"type">>, <<"test">>}, {<<"value">>, 1}]},
-        {[{<<"_id">>, <<"test2">>}, {<<"type">>, <<"test">>}, {<<"value">>, 2}]},
-        {[{<<"_id">>, <<"test3">>}, {<<"type">>, <<"test">>}, {<<"value">>, 3}]},
-        {[{<<"_id">>, <<"test4">>}, {<<"type">>, <<"test">>}, {<<"value">>, 4}]}
-    ],
+            {[{<<"_id">>, <<"test1">>}, {<<"type">>, <<"test">>}, {<<"value">>, 1}]},
+            {[{<<"_id">>, <<"test2">>}, {<<"type">>, <<"test">>}, {<<"value">>, 2}]},
+            {[{<<"_id">>, <<"test3">>}, {<<"type">>, <<"test">>}, {<<"value">>, 3}]},
+            {[{<<"_id">>, <<"test4">>}, {<<"type">>, <<"test">>}, {<<"value">>, 4}]}
+           ],
 
     couchbeam:save_docs(Db, Docs),
     couchbeam:ensure_full_commit(Db),

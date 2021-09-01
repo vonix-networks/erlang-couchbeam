@@ -23,9 +23,9 @@
 -export([proxy_token/2, proxy_header/3]).
 
 -define(PROXY_AUTH_HEADERS,[
-    {username,<<"X-Auth-CouchDB-UserName">>},
-    {roles,<<"X-Auth-CouchDB-Roles">>},
-    {token,<<"X-Auth-CouchDB-Token">>}]).
+                            {username,<<"X-Auth-CouchDB-UserName">>},
+                            {roles,<<"X-Auth-CouchDB-Roles">>},
+                            {token,<<"X-Auth-CouchDB-Token">>}]).
 
 -define(ENCODE_DOCID_FUNC, encode_docid1).
 
@@ -40,8 +40,8 @@ encode_att_name(Name) when is_binary(Name) ->
     encode_att_name(xmerl_ucs:from_utf8(Name));
 encode_att_name(Name) ->
     Parts = lists:foldl(fun(P, Att) ->
-               [xmerl_ucs:to_utf8(P)|Att]
-       end, [], string:tokens(Name, "/")),
+                                [xmerl_ucs:to_utf8(P)|Att]
+                        end, [], string:tokens(Name, "/")),
     lists:flatten(Parts).
 
 encode_docid(DocId) when is_list(DocId) ->
@@ -66,9 +66,9 @@ encode_query([]) ->
     [];
 encode_query(QSL) when is_list(QSL) ->
     lists:foldl(fun({K, V}, Acc) ->
-        V1 = encode_query_value(K, V),
-        [{K, V1}|Acc]
-    end, [], QSL);
+                        V1 = encode_query_value(K, V),
+                        [{K, V1}|Acc]
+                end, [], QSL);
 encode_query(QSL) ->
     QSL.
 
@@ -79,38 +79,38 @@ encode_query_value(K, V) when is_binary(K) ->
     encode_query_value(binary_to_list(K), V);
 encode_query_value(_K, V) -> V.
 
-% build oauth header
+                                                % build oauth header
 oauth_header(Url, Action, OauthProps) when is_binary(Url) ->
     oauth_header(binary_to_list(Url),Action, OauthProps);
 oauth_header(Url, Action, OauthProps) ->
     #hackney_url{qs=QS} = hackney_url:parse_url(Url),
     QSL = [{binary_to_list(K), binary_to_list(V)} || {K,V} <-
-                                                     hackney_url:parse_qs(QS)],
+                                                         hackney_url:parse_qs(QS)],
 
-    % get oauth paramerers
+                                                % get oauth paramerers
     ConsumerKey = to_list(get_value(consumer_key, OauthProps)),
     Token = to_list(get_value(token, OauthProps)),
     TokenSecret = to_list(get_value(token_secret, OauthProps)),
     ConsumerSecret = to_list(get_value(consumer_secret, OauthProps)),
     SignatureMethodStr = to_list(get_value(signature_method,
-            OauthProps, "HMAC-SHA1")),
+                                           OauthProps, "HMAC-SHA1")),
 
     SignatureMethodAtom = case SignatureMethodStr of
-        "PLAINTEXT" ->
-            plaintext;
-        "HMAC-SHA1" ->
-            hmac_sha1;
-        "RSA-SHA1" ->
-            rsa_sha1
-    end,
+                              "PLAINTEXT" ->
+                                  plaintext;
+                              "HMAC-SHA1" ->
+                                  hmac_sha1;
+                              "RSA-SHA1" ->
+                                  rsa_sha1
+                          end,
     Consumer = {ConsumerKey, ConsumerSecret, SignatureMethodAtom},
     Method = case Action of
-        delete -> "DELETE";
-        get -> "GET";
-        post -> "POST";
-        put -> "PUT";
-        head -> "HEAD"
-    end,
+                 delete -> "DELETE";
+                 get -> "GET";
+                 post -> "POST";
+                 put -> "PUT";
+                 head -> "HEAD"
+             end,
     Params = oauth:sign(Method, Url, QSL, Consumer, Token, TokenSecret) -- QSL,
 
     Realm = "OAuth " ++ oauth:header_params_encode(Params),
@@ -122,7 +122,7 @@ oauth_header(Url, Action, OauthProps) ->
 %% then Fun is called with the key and both values to return a new
 %% value. This a wreapper around dict:merge
 propmerge(F, L1, L2) ->
-	dict:to_list(dict:merge(F, dict:from_list(L1), dict:from_list(L2))).
+    dict:to_list(dict:merge(F, dict:from_list(L1), dict:from_list(L2))).
 
 %% @doc Update a proplist with values of the second. In case the same
 %% key is in 2 proplists, the value from the first are kept.
@@ -146,15 +146,15 @@ get_value(Key, Prop) ->
 -spec get_value(Key :: term(), Prop :: [term()], Default :: term()) -> term().
 get_value(Key, Prop, Default) ->
     case lists:keyfind(Key, 1, Prop) of
-	false ->
-	    case lists:member(Key, Prop) of
-		true -> true;
-		false -> Default
-	    end;
-	{Key, V} -> % only return V if a two-tuple is found
-	    V;
-	Other when is_tuple(Other) -> % otherwise return the default
-	    Default
+        false ->
+            case lists:member(Key, Prop) of
+                true -> true;
+                false -> Default
+            end;
+        {Key, V} -> % only return V if a two-tuple is found
+            V;
+        Other when is_tuple(Other) -> % otherwise return the default
+            Default
     end.
 
 %% @doc make view options a list
@@ -227,12 +227,12 @@ shutdown_sync(Pid) when not is_pid(Pid)->
 shutdown_sync(Pid) ->
     MRef = erlang:monitor(process, Pid),
     try
-        catch unlink(Pid),
-        catch exit(Pid, shutdown),
-        receive
+    catch unlink(Pid),
+    catch exit(Pid, shutdown),
+    receive
         {'DOWN', MRef, _, _, _} ->
             ok
-        end
+    end
     after
         erlang:demonitor(MRef, [flush])
     end.
@@ -248,10 +248,10 @@ start_app_deps(App) ->
 %% @doc Start the named application if not already started.
 ensure_started(App) ->
     case application:start(App) of
-	ok ->
-	    ok;
-	{error, {already_started, App}} ->
-	    ok
+        ok ->
+            ok;
+        {error, {already_started, App}} ->
+            ok
     end.
 
 get_app_env(Env, Default) ->
@@ -267,11 +267,11 @@ proxy_header(UserName,Roles,Secret,HeaderNames) ->
     proxy_header_token(UserName,Roles,proxy_token(Secret,UserName),HeaderNames).
 
 proxy_header_token(UserName,Roles,Token,L) ->
-[
-    {hgv(username,L), UserName},
-    {hgv(roles,L), Roles},
-    {hgv(token,L), Token}
-].
+    [
+     {hgv(username,L), UserName},
+     {hgv(roles,L), Roles},
+     {hgv(token,L), Token}
+    ].
 
 hgv(N,L) ->
     get_value(N,L,get_value(N,?PROXY_AUTH_HEADERS)).

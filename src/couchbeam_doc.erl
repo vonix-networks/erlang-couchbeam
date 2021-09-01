@@ -122,11 +122,11 @@ set_value1([], _Key, _Value, Acc) ->
     {lists:reverse(Acc)};
 set_value1([{K, V}|T], Key, Value, Acc) ->
     Acc1 = if
-        K =:= Key ->
-            [{Key, Value}|Acc];
-        true ->
-            [{K, V}|Acc]
-        end,
+               K =:= Key ->
+                   [{Key, Value}|Acc];
+               true ->
+                   [{K, V}|Acc]
+           end,
     set_value1(T, Key, Value, Acc1).
 
 

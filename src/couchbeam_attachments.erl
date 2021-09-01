@@ -12,7 +12,7 @@
 
 -export([add_inline/3, add_inline/4,
          add_stub/3,
-        delete_inline/2]).
+         delete_inline/2]).
 
 %% @spec add_inline(Doc::json_obj(),Content::attachment_content(),
 %%      AName::string()) -> json_obj()
@@ -32,35 +32,35 @@ add_inline(Doc, Content, AName, ContentType) ->
                            {<<"data">>, Data}]}},
 
     Attachments1 = case proplists:get_value(<<"_attachments">>, Props) of
-        undefined ->
-            [Attachment];
-        {Attachments} ->
-            case set_attachment(Attachments, [], Attachment) of
-                notfound ->
-                    [Attachment|Attachments];
-                A ->
-                    A
-                end
-        end,
+                       undefined ->
+                           [Attachment];
+                       {Attachments} ->
+                           case set_attachment(Attachments, [], Attachment) of
+                               notfound ->
+                                   [Attachment|Attachments];
+                               A ->
+                                   A
+                           end
+                   end,
     couchbeam_doc:set_value(<<"_attachments">>, {Attachments1}, Doc).
 
 
 add_stub({Props} = Doc, Name, ContentType) ->
     Att = {couchbeam_util:to_binary(Name), {[
-                    {<<"content_type">>, couchbeam_util:to_binary(ContentType)}
-                ]}},
+                                             {<<"content_type">>, couchbeam_util:to_binary(ContentType)}
+                                            ]}},
 
     Attachments1 = case proplists:get_value(<<"_attachments">>, Props) of
-        undefined ->
-            [Att];
-        {Attachments} ->
-            case set_attachment(Attachments, [], Att) of
-                notfound ->
-                    [Att|Attachments];
-                A ->
-                    A
-                end
-        end,
+                       undefined ->
+                           [Att];
+                       {Attachments} ->
+                           case set_attachment(Attachments, [], Att) of
+                               notfound ->
+                                   [Att|Attachments];
+                               A ->
+                                   A
+                           end
+                   end,
     couchbeam_doc:set_value(<<"_attachments">>, {Attachments1}, Doc).
 
 
@@ -81,10 +81,10 @@ delete_inline(Doc, AName) when is_binary(AName) ->
                 _ ->
                     Attachments1 = proplists:delete(AName, Attachments),
                     couchbeam_doc:set_value(<<"_attachments">>, {Attachments1}, Doc)
-                end
-        end.
+            end
+    end.
 
-% @private
+                                                % @private
 set_attachment(Attachments, NewAttachments, Attachment) ->
     set_attachment(Attachments, NewAttachments, Attachment, false).
 set_attachment([], Attachments, _Attachment, Found) ->
@@ -93,13 +93,13 @@ set_attachment([], Attachments, _Attachment, Found) ->
             Attachments;
         false ->
             notfound
-        end;
+    end;
 set_attachment([{Name, V}|T], Attachments, Attachment, Found) ->
     {AName, _} = Attachment,
     {Attachment1, Found1} = if
-        Name =:= AName, Found =:= false ->
-            {Attachment, true};
-        true ->
-            {{Name, V}, Found}
-        end,
+                                Name =:= AName, Found =:= false ->
+                                    {Attachment, true};
+                                true ->
+                                    {{Name, V}, Found}
+                            end,
     set_attachment(T, [Attachment1|Attachments], Attachment, Found1).

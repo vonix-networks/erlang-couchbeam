@@ -89,14 +89,14 @@ do_init_stream({#db{options=Opts}, Url, Args}, #state{mref=MRef}=State) ->
     %% we are doing the request asynchronously
     FinalOpts = [{async, once} | Opts],
     Reply = case Args#view_query_args.method of
-        get ->
-            couchbeam_httpc:request(get, Url, [], <<>>, FinalOpts);
-        post ->
-            Body = couchbeam_ejson:encode({[{<<"keys">>,
-                                             Args#view_query_args.keys}]}),
-            Headers = [{<<"Content-Type">>, <<"application/json">>}],
-            couchbeam_httpc:request(post, Url, Headers, Body, FinalOpts)
-    end,
+                get ->
+                    couchbeam_httpc:request(get, Url, [], <<>>, FinalOpts);
+                post ->
+                    Body = couchbeam_ejson:encode({[{<<"keys">>,
+                                                     Args#view_query_args.keys}]}),
+                    Headers = [{<<"Content-Type">>, <<"application/json">>}],
+                    couchbeam_httpc:request(post, Url, Headers, Body, FinalOpts)
+            end,
 
     case Reply of
         {ok, Ref} ->
@@ -164,17 +164,17 @@ decode_data(Data, #state{owner=Owner,
     try
         {incomplete, DecodeFun2} = DecodeFun(Data),
         try DecodeFun2(end_stream) of done ->
-            %% stop the request
-            {ok, _} = hackney:stop_async(ClientRef),
-            %% skip the rest of the body so the socket is
-            %% replaced in the pool
-            hackney:skip_body(ClientRef),
-            %% unregister the stream
-            ets:delete(couchbeam_view_streams, StreamRef),
-            %% tell to the owner that we are done and exit,
-            Owner ! {StreamRef, done}
+                %% stop the request
+                {ok, _} = hackney:stop_async(ClientRef),
+                %% skip the rest of the body so the socket is
+                %% replaced in the pool
+                hackney:skip_body(ClientRef),
+                %% unregister the stream
+                ets:delete(couchbeam_view_streams, StreamRef),
+                %% tell to the owner that we are done and exit,
+                Owner ! {StreamRef, done}
         catch error:badarg ->
-            maybe_continue(State#state{decoder=DecodeFun2})
+                maybe_continue(State#state{decoder=DecodeFun2})
         end
     catch error:badarg -> exit(badarg)
     end.
@@ -308,7 +308,7 @@ collect_object(start_object, {_, NestCount, Terms, ViewSt}) ->
     {collect_object, NestCount + 1, [[]|Terms], ViewSt};
 
 collect_object(end_object, {_, NestCount, [[], {key, Key}, Last|Terms],
-                           ViewSt}) ->
+                            ViewSt}) ->
     {collect_object, NestCount - 1, [[{Key, {[{}]}}] ++ Last] ++ Terms,
      ViewSt};
 
@@ -337,7 +337,7 @@ collect_object(end_object, {_, NestCount, [Object, Last|Terms], ViewSt}) ->
 collect_object(start_array, {_, NestCount, Terms, ViewSt}) ->
     {collect_object, NestCount, [[]|Terms], ViewSt};
 collect_object(end_array, {_, NestCount, [List, {key, Key}, Last|Terms],
-                          ViewSt}) ->
+                           ViewSt}) ->
     {collect_object, NestCount,
      [[{Key, lists:reverse(List)}] ++ Last] ++ Terms, ViewSt};
 collect_object(end_array, {_, NestCount, [List, Last|Terms], ViewSt}) ->
@@ -417,7 +417,7 @@ maybe_continue_decoding(#viewst{parent=Parent,
             report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
-        {wait_rows1, 0, [[]], ViewSt}
+            {wait_rows1, 0, [[]], ViewSt}
     end.
 
 report_error({error, _What}=Error, Ref, Pid) ->

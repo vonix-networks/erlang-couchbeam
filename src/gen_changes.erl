@@ -64,17 +64,17 @@ init([Module, Db, Options, InitArgs]) ->
     case Module:init(InitArgs) of
         {ok, ModState} ->
             case couchbeam_changes:follow(Db, Options) of
-            {ok, StreamRef} ->
-                LastSeq = proplists:get_value(since, Options, 0),
-                {ok, #gen_changes_state{stream_ref=StreamRef,
-                                        mod=Module,
-                                        modstate=ModState,
-                                        db=Db,
-                                        options=Options,
-                                        last_seq=LastSeq}};
-            {error, Error} ->
-                Module:terminate(Error, ModState),
-                {stop, Error}
+                {ok, StreamRef} ->
+                    LastSeq = proplists:get_value(since, Options, 0),
+                    {ok, #gen_changes_state{stream_ref=StreamRef,
+                                            mod=Module,
+                                            modstate=ModState,
+                                            db=Db,
+                                            options=Options,
+                                            last_seq=LastSeq}};
+                {error, Error} ->
+                    Module:terminate(Error, ModState),
+                    {stop, Error}
             end;
         Error ->
             Error
@@ -104,7 +104,7 @@ handle_call(Request, From,
             {stop, Reason, State#gen_changes_state{modstate=NewModState}};
         {stop, Reason, Reply, NewModState} ->
             {stop, Reason, Reply, State#gen_changes_state{modstate=NewModState}}
-  end.
+    end.
 
 handle_cast(stop, State) ->
     {stop, normal, State};
@@ -120,16 +120,16 @@ handle_cast(Msg, State=#gen_changes_state{mod=Module, modstate=ModState}) ->
 
 
 handle_info({Ref, Msg},
-        State=#gen_changes_state{mod=Module, modstate=ModState,
-            stream_ref=Ref}) ->
+            State=#gen_changes_state{mod=Module, modstate=ModState,
+                                     stream_ref=Ref}) ->
 
     State2 = case Msg of
-        {done, LastSeq} ->
-            State#gen_changes_state{last_seq=LastSeq};
-        {change, Change} ->
-            Seq = couchbeam_doc:get_value(<<"seq">>, Change),
-            State#gen_changes_state{last_seq=Seq}
-    end,
+                 {done, LastSeq} ->
+                     State#gen_changes_state{last_seq=LastSeq};
+                 {change, Change} ->
+                     Seq = couchbeam_doc:get_value(<<"seq">>, Change),
+                     State#gen_changes_state{last_seq=Seq}
+             end,
 
     case catch Module:handle_change(Msg, ModState) of
         {noreply, NewModState} ->
@@ -142,7 +142,7 @@ handle_info({Ref, Msg},
 
 
 handle_info({Ref, {error, Error}},
-        State=#gen_changes_state{stream_ref=Ref, last_seq=LastSeq}) ->
+            State=#gen_changes_state{stream_ref=Ref, last_seq=LastSeq}) ->
     handle_info({error, [Error, {last_seq, LastSeq}]}, State);
 
 handle_info(Info, State=#gen_changes_state{mod=Module, modstate=ModState}) ->
@@ -160,7 +160,7 @@ code_change(_OldVersion, State, _Extra) ->
     {ok, State}.
 
 terminate(Reason, #gen_changes_state{stream_ref=Ref,
-        mod=Module, modstate=ModState}) ->
+                                     mod=Module, modstate=ModState}) ->
     Module:terminate(Reason, ModState),
     couchbeam_changes:cancel_stream(Ref),
     ok.
