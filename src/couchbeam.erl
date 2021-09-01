@@ -349,7 +349,7 @@ create_db(#server{url=ServerUrl, options=Opts}=Server, DbName0, Options,
     Resp = couchbeam_httpc:db_request(put, Url, [], <<>>, Options1, [201]),
     case Resp of
         {ok, _Status, _Headers, Ref} ->
-            hackney:skip_body(Ref),
+            _ = hackney:skip_body(Ref),
             {ok, #db{server=Server, name=DbName, options=Options1}};
         {error, precondition_failed} ->
             {error, db_exists};
@@ -394,7 +394,7 @@ open_or_create_db(#server{url=ServerUrl, options=Opts}=Server, DbName0,
     Resp = couchbeam_httpc:request(get, Url, [], <<>>, Opts1),
     case couchbeam_httpc:db_resp(Resp, [200]) of
         {ok, _Status, _Headers, Ref} ->
-            hackney:skip_body(Ref),
+            _ = hackney:skip_body(Ref),
             open_db(Server, DbName, Options);
         {error, not_found} ->
             create_db(Server, DbName, Options, Params);
@@ -817,7 +817,7 @@ fetch_attachment(#db{server=Server, options=Opts}=Db, DocId, Name, Options0) ->
         {ok, 200, _, Ref} ->
             {ok, Ref};
         {ok, 404, _, Ref} ->
-            hackney:skip_body(Ref),
+            _ = hackney:skip_body(Ref),
             {error, not_found};
         {ok, Status, Headers, Ref} ->
             {ok, Body} = hackney:body(Ref),
@@ -995,7 +995,7 @@ compact(#db{server=Server, options=Opts}=Db) ->
     Headers = [{<<"Content-Type">>, <<"application/json">>}],
     case couchbeam_httpc:db_request(post, Url, Headers, <<>>, Opts, [202]) of
         {ok, _, _, Ref} ->
-            hackney:skip_body(Ref),
+            _ = hackney:skip_body(Ref),
             ok;
         Error ->
             Error
@@ -1011,7 +1011,7 @@ compact(#db{server=Server, options=Opts}=Db, DesignName) ->
     Headers = [{<<"Content-Type">>, <<"application/json">>}],
     case couchbeam_httpc:db_request(post, Url, Headers, <<>>, Opts, [202]) of
         {ok, _, _, Ref} ->
-            hackney:skip_body(Ref),
+            _ = hackney:skip_body(Ref),
             ok;
         Error ->
             Error

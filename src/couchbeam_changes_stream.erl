@@ -158,7 +158,7 @@ loop(#state{owner=Owner,
             client_ref=ClientRef}=State) ->
 
 
-    hackney:stream_next(ClientRef),
+    _ = hackney:stream_next(ClientRef),
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
@@ -174,7 +174,7 @@ loop(#state{owner=Owner,
         {hackney_response, ClientRef, Error} ->
             ets:delete(couchbeam_changes_streams, StreamRef),
             %% report the error
-            report_error(Error, StreamRef, Owner),
+            _ = report_error(Error, StreamRef, Owner),
             exit(Error)
     end.
 
@@ -213,7 +213,7 @@ wait_reconnect(#state{parent=Parent,
             %% parent exited there is no need to continue
             exit(normal);
         {Ref, cancel} ->
-            maybe_close(State),
+            _ = maybe_close(State),
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% tell the parent we exited
@@ -231,7 +231,7 @@ wait_reconnect(#state{parent=Parent,
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             loop(State)
@@ -254,7 +254,7 @@ decodefun(Fun) ->
 decode_with_tail(Data, Fun, State) ->
     case (decodefun(Fun))(Data) of
         {with_tail,Props,Rest} ->
-            seq(Props,State),
+            _ = seq(Props,State),
             decode_with_tail(Rest,decodefun(nil),State);
         Other -> Other
     end.
@@ -270,7 +270,7 @@ decode_data(Data, #state{feed_type=continuous,
 
     try DecodeFun2(end_stream) of
         Props ->
-            seq(Props,State),
+            _ = seq(Props,State),
             maybe_continue(State#state{decoder=nil})
     catch error:badarg -> maybe_continue(State#state{decoder=DecodeFun2})
     end;
@@ -305,7 +305,7 @@ maybe_continue(#state{parent=Parent,
         {Ref, stream_next} ->
             loop(State);
         {Ref, cancel} ->
-            maybe_close(State),
+            _ = maybe_close(State),
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% tell the parent we exited
@@ -318,7 +318,7 @@ maybe_continue(#state{parent=Parent,
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             loop(State)
@@ -332,7 +332,7 @@ maybe_continue(#state{parent=Parent,
             %% parent exited there is no need to continue
             exit(normal);
         {Ref, cancel} ->
-            maybe_close(State),
+            _ = maybe_close(State),
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% tell the parent we exited
@@ -349,7 +349,7 @@ maybe_continue(#state{parent=Parent,
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             loop(State)
@@ -474,7 +474,7 @@ maybe_continue_decoding(#state{parent=Parent,
         {Ref, stream_next} ->
             {wait_results1, 0, [[]], St};
         {Ref, cancel} ->
-            hackney:close(ClientRef),
+            _ = hackney:close(ClientRef),
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% tell the parent we exited
@@ -489,7 +489,7 @@ maybe_continue_decoding(#state{parent=Parent,
             %% unregister the stream
             ets:delete(couchbeam_changes_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 5000 ->
             erlang:hibernate(?MODULE, maybe_continue_decoding, [St])
@@ -505,7 +505,7 @@ maybe_continue_decoding(#state{parent=Parent,
             %% parent exited there is no need to continue
             exit(normal);
         {Ref, cancel} ->
-            hackney:close(ClientRef),
+            _ = hackney:close(ClientRef),
             Owner ! {Ref, ok},
             exit(normal);
         {Ref, pause} ->
@@ -517,7 +517,7 @@ maybe_continue_decoding(#state{parent=Parent,
                                   {maybe_continue_decoding, St});
         Else ->
             error_logger:error_msg("Unexpected message: ~w~n", [Else]),
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             {wait_results1, 0, [[]], St}

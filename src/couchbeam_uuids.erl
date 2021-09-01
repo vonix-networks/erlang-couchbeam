@@ -56,7 +56,7 @@ start_link() ->
 
 init(_) ->
     process_flag(trap_exit, true),
-    ets:new(couchbeam_uuids, [named_table, public, {keypos, 2}]),
+    _ = ets:new(couchbeam_uuids, [named_table, public, {keypos, 2}]),
     {ok, #state{}}.
 
 handle_call({get_uuids, #server{url=Url}=Server, Count},

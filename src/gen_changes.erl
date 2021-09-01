@@ -162,5 +162,5 @@ code_change(_OldVersion, State, _Extra) ->
 terminate(Reason, #gen_changes_state{stream_ref=Ref,
                                      mod=Module, modstate=ModState}) ->
     Module:terminate(Reason, ModState),
-    couchbeam_changes:cancel_stream(Ref),
+    _ = couchbeam_changes:cancel_stream(Ref),
     ok.

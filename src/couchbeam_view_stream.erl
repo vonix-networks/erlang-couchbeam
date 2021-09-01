@@ -72,15 +72,15 @@ init_stream(Parent, Owner, StreamRef, {_Db, _Url, _Args}=Req,
                        async=Async},
 
     %% connect to the view
-    case do_init_stream(Req, InitState) of
-        {ok, State} ->
-            %% register the stream
-            ets:insert(couchbeam_view_streams, [{StreamRef, self()}]),
-            %% start the loop
-            loop(State);
-        Error ->
-            report_error(Error, StreamRef, Owner)
-    end,
+    _ = case do_init_stream(Req, InitState) of
+            {ok, State} ->
+                %% register the stream
+                ets:insert(couchbeam_view_streams, [{StreamRef, self()}]),
+                %% start the loop
+                loop(State);
+            Error ->
+                report_error(Error, StreamRef, Owner)
+        end,
     %% stop to monitor the parent
     erlang:demonitor(MRef),
     ok.
@@ -136,7 +136,7 @@ loop(#state{owner=Owner,
             mref=MRef,
             client_ref=ClientRef}=State) ->
 
-    hackney:stream_next(ClientRef),
+    _ = hackney:stream_next(ClientRef),
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
@@ -153,7 +153,7 @@ loop(#state{owner=Owner,
         {hackney_response, ClientRef, Error} ->
             ets:delete(couchbeam_view_streams, StreamRef),
             %% report the error
-            report_error(Error, StreamRef, Owner),
+            _ = report_error(Error, StreamRef, Owner),
             exit(Error)
     end.
 
@@ -185,12 +185,12 @@ maybe_continue(#state{parent=Parent, owner=Owner, ref=Ref, mref=MRef,
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
-            maybe_close(State),
+            _ = maybe_close(State),
             exit(normal);
         {Ref, stream_next} ->
             loop(State);
         {Ref, cancel} ->
-            maybe_close(State),
+            _ = maybe_close(State),
             %% unregister the stream
             ets:delete(couchbeam_view_streams, Ref),
             %% tell the parent we exited
@@ -203,7 +203,7 @@ maybe_continue(#state{parent=Parent, owner=Owner, ref=Ref, mref=MRef,
             %% unregister the stream
             ets:delete(couchbeam_view_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             loop(State)
@@ -215,10 +215,10 @@ maybe_continue(#state{parent=Parent,
     receive
         {'DOWN', MRef, _, _, _} ->
             %% parent exited there is no need to continue
-            maybe_close(State),
+            _ = maybe_close(State),
             exit(normal);
         {Ref, cancel} ->
-            maybe_close(State),
+            _ = maybe_close(State),
             %% unregister the stream
             ets:delete(couchbeam_view_streams, Ref),
             %% tell the parent we exited
@@ -235,7 +235,7 @@ maybe_continue(#state{parent=Parent,
             %% unregister the stream
             ets:delete(couchbeam_view_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             loop(State)
@@ -255,7 +255,7 @@ system_continue(_, _, {loop, State}) ->
 -spec system_terminate(any(), _, _, _) -> no_return().
 system_terminate(Reason, _, _, #state{ref=StreamRef,
                                       client_ref=ClientRef}) ->
-    hackney:close(ClientRef),
+    _ = hackney:close(ClientRef),
     %% unregister the stream
     catch ets:delete(couchbeam_view_streams, StreamRef),
     exit(Reason).
@@ -371,7 +371,7 @@ maybe_continue_decoding(#viewst{parent=Parent,
         {Ref, stream_next} ->
             {wait_rows1, 0, [[]], ViewSt};
         {Ref, cancel} ->
-            hackney:close(ClientRef),
+            _ = hackney:close(ClientRef),
             %% unregister the stream
             ets:delete(couchbeam_view_streams, Ref),
             %% tell the parent we exited
@@ -386,7 +386,7 @@ maybe_continue_decoding(#viewst{parent=Parent,
             %% unregister the stream
             ets:delete(couchbeam_view_streams, Ref),
             %% report the error
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 5000 ->
             erlang:hibernate(?MODULE, maybe_continue_decoding, [ViewSt])
@@ -402,7 +402,7 @@ maybe_continue_decoding(#viewst{parent=Parent,
             %% parent exited there is no need to continue
             exit(normal);
         {Ref, cancel} ->
-            hackney:close(ClientRef),
+            _ = hackney:close(ClientRef),
             Owner ! {Ref, ok},
             exit(normal);
         {Ref, pause} ->
@@ -414,7 +414,7 @@ maybe_continue_decoding(#viewst{parent=Parent,
                                   {maybe_continue_decoding, ViewSt});
         Else ->
             error_logger:error_msg("Unexpected message: ~w~n", [Else]),
-            report_error(Else, Ref, Owner),
+            _ = report_error(Else, Ref, Owner),
             exit(Else)
     after 0 ->
             {wait_rows1, 0, [[]], ViewSt}

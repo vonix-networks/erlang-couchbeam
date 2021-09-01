@@ -84,19 +84,19 @@ db_resp({ok, Status, Headers}=Resp, Expect) ->
             {error, {bad_response, {Status, Headers, <<>>}}}
     end;
 db_resp({ok, 401, _, Ref}, _Expect) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, unauthenticated};
 db_resp({ok, 403, _, Ref}, _Expect) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, forbidden};
 db_resp({ok, 404, _, Ref}, _Expect) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, not_found};
 db_resp({ok, 409, _, Ref}, _Expect) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, conflict};
 db_resp({ok, 412, _, Ref}, _Expect) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, precondition_failed};
 db_resp({ok, _, _, _}=Resp, []) ->
     Resp;
@@ -134,10 +134,10 @@ reply_att(ok) ->
 reply_att(done) ->
     done;
 reply_att({ok, 404, _, Ref}) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, not_found};
 reply_att({ok, 409, _, Ref}) ->
-    hackney:skip_body(Ref),
+    _ = hackney:skip_body(Ref),
     {error, conflict};
 reply_att({ok, Status, _, Ref}) when Status =:= 200 orelse Status =:= 201 ->
     {[{<<"ok">>, true}|R]} = couchbeam_httpc:json_body(Ref),

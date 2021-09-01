@@ -26,7 +26,7 @@ start_link() ->
 init([]) ->
 
     %% start table to keep async streams ref
-    ets:new(couchbeam_changes_streams, [set, public, named_table]),
+    _ = ets:new(couchbeam_changes_streams, [set, public, named_table]),
 
     %% define a stream spec
     Stream = {couchbeam_changes_stream,
