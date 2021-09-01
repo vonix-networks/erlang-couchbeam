@@ -506,7 +506,7 @@ stream_doc({_Ref, Cont}) ->
 
 %% @doc stop to receive the multipart response of the doc api and close
 %% the connection.
--spec end_doc_stream(doc_stream()) -> ok.
+-spec end_doc_stream(doc_stream()) -> any().
 end_doc_stream({Ref, _Cont}) ->
     hackney:close(Ref).
 
@@ -782,7 +782,7 @@ fetch_attachment(Db, DocId, Name) ->
 %% <li>Other options that can be sent using the REST API</li>
 %% </ul>
 %%
--spec fetch_attachment(db(), string(), string(),
+-spec fetch_attachment(db(), binary(), binary(),
                        list())
                       -> {ok, binary()}| {ok, atom()} |{error, term()}.
 fetch_attachment(#db{server=Server, options=Opts}=Db, DocId, Name, Options0) ->

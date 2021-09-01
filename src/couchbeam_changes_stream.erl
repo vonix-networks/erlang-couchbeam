@@ -94,7 +94,7 @@ init_stream(Parent, Owner, StreamRef, Db, Options) ->
     proc_lib:init_ack(Parent, {ok, self()}),
 
     %% start the loop
-    loop(State),
+    _ = loop(State),
     %% stop to monitor the parent
     erlang:demonitor(MRef),
     ok.
