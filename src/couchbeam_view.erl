@@ -20,35 +20,45 @@
          show/2, show/3, show/4
         ]).
 
--spec all(Db::db()) -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec all(Db::db()) ->
+          {ok, Rows::list(ejson_object())} |
+          {error, term()} |
+          {error, term(), Rows::list(ejson_object())}.
 %% @doc fetch all docs
 %% @equiv fetch(Db, 'all_docs', [])
 all(Db) ->
     fetch(Db, 'all_docs', []).
 
--spec all(Db::db(), Options::view_options())
-         -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec all(Db::db(), Options::view_options()) ->
+          {ok, Rows::list(ejson_object())} |
+          {error, term()} |
+          {error, term(), Rows::list(ejson_object())}.
 %% @doc fetch all docs
 %% @equiv fetch(Db, 'all_docs', Options)
 all(Db, Options) ->
     fetch(Db, 'all_docs', Options).
 
--spec fetch(Db::db()) -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec fetch(Db::db()) ->
+          {ok, Rows::list(ejson_object())} |
+          {error, term()} |
+          {error, term(), Rows::list(ejson_object())}.
 %% @equiv fetch(Db, 'all_docs', [])
 fetch(Db) ->
     fetch(Db, 'all_docs', []).
 
--spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                              ViewName::string()})
-           -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()}) ->
+          {ok, Rows::list(ejson_object())} |
+          {error, term()} |
+          {error, term(), Rows::list(ejson_object())}.
 %% @equiv fetch(Db, ViewName, [])
 fetch(Db, ViewName) ->
     fetch(Db, ViewName,[]).
 
 
--spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                              ViewName::string()}, Options::view_options())
-           -> {ok, Rows::list(ejson_object())} | {error, term()}.
+-spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()}, Options::view_options()) ->
+          {ok, Rows::list(ejson_object())} |
+          {error, term()} |
+          {error, term(), Rows::list(ejson_object())}.
 %% @doc Collect view results
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: <code>'all_docs'</code> to get all docs or <code>{DesignName,
@@ -69,18 +79,18 @@ fetch(Db, ViewName, Options) ->
     case stream(Db, ViewName, Options) of
         {ok, Ref} ->
             collect_view_results(Ref, []);
-        Error ->
+        {error, _}=Error ->
             Error
     end.
 
--spec show(db(), {string(), string()}) ->
-          {'ok', [ejson_object()]} |
+-spec show(db(), {binary(), binary()}) ->
+          {'ok', ejson_object()} |
           {'error', term()}.
 show(Db, ShowName) ->
     show(Db, ShowName, <<>>).
 
--spec show(db(), {string(), string()}, binary()) ->
-          {'ok', [ejson_object()]} |
+-spec show(db(), {binary(), binary()}, binary()) ->
+          {'ok', ejson_object()} |
           {'error', term()}.
 show(Db, ShowName, DocId) ->
     show(Db, ShowName, DocId, []).
@@ -89,7 +99,7 @@ show(Db, ShowName, DocId) ->
 -type show_options() :: [show_option()].
 
 -spec show(db(), {binary(), binary()}, 'null' | binary(), show_options()) ->
-          {'ok', [ejson_object()]} |
+          {'ok', ejson_object()} |
           {'error', term()}.
 show(#db{server=Server, options=DBOptions}=Db
     ,{<<DesignName/binary>>, <<ShowName/binary>>}
@@ -126,16 +136,16 @@ show_doc_id('null') -> <<>>;
 show_doc_id(<<>>) -> <<>>;
 show_doc_id(<<DocId/binary>>) -> [<<"/">>, couchbeam_util:encode_docid(DocId)].
 
--spec stream(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                               ViewName::string()}) -> {ok, StartRef::term(),
-                                                                        ViewPid::pid()} | {error, term()}.
+-spec stream(Db::db(), ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()}) ->
+          {ok, StartRef::term()} |
+          {error, term()}.
 %% @equiv stream(Db, ViewName, Client, [])
 stream(Db, ViewName) ->
     stream(Db, ViewName, []).
 
--spec stream(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                               ViewName::string()}, Options::view_options())
-            -> {ok, StartRef::term(), ViewPid::pid()} | {error, term()}.
+-spec stream(Db::db(), ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()}, Options::view_options()) ->
+          {ok, StartRef::term()} |
+          {error, term()}.
 %% @doc stream view results to a pid
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: 'all_docs' to get all docs or {DesignName,
@@ -247,14 +257,14 @@ stream_next(Ref) ->
 count(Db) ->
     count(Db, 'all_docs', []).
 
--spec count(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                              ViewName::string()}) -> integer() | {error, term()}.
+-spec count(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
+                                              ViewName::binary()}) -> integer() | {error, term()}.
 %% @equiv count(Db, ViewName, [])
 count(Db, ViewName) ->
     count(Db, ViewName, []).
 
--spec count(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                              ViewName::string()}, Options::view_options())
+-spec count(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
+                                              ViewName::binary()}, Options::view_options())
            -> integer() | {error, term()}.
 %% @doc count number of doc in a view (or all docs)
 count(Db, ViewName, Options)->
@@ -278,16 +288,16 @@ count(Db, ViewName, Options)->
 first(Db) ->
     first(Db, 'all_docs', []).
 
--spec first(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                              ViewName::string()})
+-spec first(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
+                                              ViewName::binary()})
            -> {ok, Row::ejson_object()} | {error, term()}.
 %% @equiv first(Db, ViewName, [])
 first(Db, ViewName) ->
     first(Db, ViewName,[]).
 
 
--spec first(Db::db(), ViewName::'all_docs' | {DesignName::string(),
-                                              ViewName::string()}, Options::view_options())
+-spec first(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
+                                              ViewName::binary()}, Options::view_options())
            -> {ok, Rows::ejson_object()} | {error, term()}.
 %% @doc get first result of a view
 %%  <p>Db: a db record</p>
@@ -327,15 +337,15 @@ first(Db, ViewName, Options) ->
                                       end).
 
 -spec fold(Function::function(), Acc::any(), Db::db(),
-           ViewName::'all_docs' | {DesignName::string(), ViewName::string()})
+           ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()})
           -> list(term()) | {error, term()}.
 %% @equiv fold(Function, Acc, Db, ViewName, [])
 fold(Function, Acc, Db, ViewName) ->
     fold(Function, Acc, Db, ViewName, []).
 
 -spec fold(Function::function(), Acc::any(), Db::db(),
-           ViewName::'all_docs' | {DesignName::string(),
-                                   ViewName::string()}, Options::view_options())
+           ViewName::'all_docs' | {DesignName::binary(),
+                                   ViewName::binary()}, Options::view_options())
           -> list(term()) | {error, term()}.
 %% @doc call Function(Row, AccIn) on succesive row, starting with
 %% AccIn == Acc. Function/2 must return a new list accumultator or the
@@ -356,15 +366,15 @@ fold(Function, Acc, Db, ViewName, Options) ->
     end.
 
 -spec foreach(Function::function(), Db::db(),
-              ViewName::'all_docs' | {DesignName::string(), ViewName::string()})
+              ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()})
              -> list(term()) | {error, term()}.
 %% @equiv foreach(Function, Db, ViewName, [])
 foreach(Function, Db, ViewName) ->
     foreach(Function, Db, ViewName, []).
 
 -spec foreach(Function::function(),  Db::db(),
-              ViewName::'all_docs' | {DesignName::string(),
-                                      ViewName::string()}, Options::view_options())
+              ViewName::'all_docs' | {DesignName::binary(),
+                                      ViewName::binary()}, Options::view_options())
              -> list(term()) | {error, term()}.
 %% @doc call Function(Row) on succesive row. Example:
 %% ```
@@ -524,7 +534,10 @@ fold_view_results(Ref, Fun, Acc) ->
     end.
 
 
-
+-spec collect_view_results(reference(), Rows::list(ejson_object())) ->
+          {ok, Rows::list(ejson_object())} |
+          {error, term()} |
+          {error, term(), Rows::list(ejson_object())}.
 collect_view_results(Ref, Acc) ->
     receive
         {Ref, done} ->
