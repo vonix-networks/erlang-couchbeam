@@ -36,11 +36,23 @@ json_body(Ref) ->
     couchbeam_ejson:decode(Body).
 
 make_headers(Method, Url, Headers, Options) ->
+    Application =
+        case get('kz_application') of
+            'undefined' ->
+                case application:get_application() of
+                    'undefined' -> 'undefined';
+                    {'ok', App} -> App
+                end;
+            App -> App
+        end,
     Headers1 = case couchbeam_util:get_value(<<"Accept">>, Headers) of
-        undefined ->
-            [{<<"Accept">>, <<"application/json, */*;q=0.9">>} | Headers];
-        _ ->
-            Headers
+                   undefined ->
+                       [{<<"X-Kazoo-Application">>, kz_term:to_binary(Application)}
+                       ,{<<"Accept">>, <<"application/json, */*;q=0.9">>}
+                        | Headers
+                       ];
+                   _ ->
+                       [{<<"X-Kazoo-Application">>, kz_term:to_binary(Application)} | Headers]
     end,
    {Headers2, Options1} = maybe_oauth_header(Method, Url, Headers1, Options),
    maybe_proxyauth_header(Headers2, Options1).
