@@ -125,32 +125,37 @@ do_init_stream(#state{mref=MRef,
                                Options1),
 
     {ok, ClientRef} = case DocIds of
-                          [] ->
-                              couchbeam_httpc:request(get, Url, [], <<>>, ConnOpts1);
-                          DocIds ->
-                              Body =  couchbeam_ejson:encode({[{<<"doc_ids">>, DocIds}]}),
-                              Headers = [{<<"Content-Type">>, <<"application/json">>}],
-                              couchbeam_httpc:request(post, Url, Headers, Body, ConnOpts1)
-                      end,
-    receive
-        {'DOWN', MRef, _, _, _} ->
-            %% parent exited there is no need to continue
-            exit(normal);
-        {hackney_response, ClientRef, {status, 200, _}} ->
-            State1 = State#state{client_ref=ClientRef},
-            DecoderFun = case FeedType of
-                             longpoll ->
-                                 jsx:decoder(?MODULE, [State1], [stream]);
-                             _ ->
-                                 nil
-                         end,
-            {ok, State1#state{decoder=DecoderFun}};
-        {hackney_response, ClientRef, {error, Reason}} ->
-            exit(Reason)
-    after ?TIMEOUT ->
-            exit(timeout)
-    end.
+        [] ->
+            couchbeam_httpc:request(get, Url, [], <<>>, ConnOpts1);
+        DocIds ->
+            Body =  couchbeam_ejson:encode({[{<<"doc_ids">>, DocIds}]}),
+            Headers = [{<<"Content-Type">>, <<"application/json">>}],
+            couchbeam_httpc:request(post, Url, Headers, Body, ConnOpts1)
+    end,
 
+    case {FeedType, proplists:get_value(since, Options, 0)} of
+        {continuous, now} ->
+            {ok, State#state{decoder = nil, client_ref=ClientRef}};
+        _ ->
+            receive
+                {'DOWN', MRef, _, _, _} ->
+                    %% parent exited there is no need to continue
+                    exit(normal);
+                {hackney_response, ClientRef, {status, 200, _}} ->
+                    State1 = State#state{client_ref=ClientRef},
+                    DecoderFun = case FeedType of
+                                     longpoll ->
+                                         jsx:decoder(?MODULE, [State1], [stream]);
+                                     _ ->
+                                         nil
+                                 end,
+                    {ok, State1#state{decoder=DecoderFun}};
+                {hackney_response, ClientRef, {error, Reason}} ->
+                    exit(Reason)
+            after ?TIMEOUT ->
+                    exit(timeout)
+            end
+    end.
 
 loop(#state{owner=Owner,
             ref=StreamRef,
@@ -164,6 +169,8 @@ loop(#state{owner=Owner,
             %% parent exited there is no need to continue
             exit(normal);
         {hackney_response, ClientRef, {headers, _Headers}} ->
+            loop(State);
+        {hackney_response, ClientRef, {status, 200, _V}} ->
             loop(State);
         {hackney_response, ClientRef, done} ->
             maybe_reconnect(State);
@@ -557,3 +564,12 @@ maybe_close(#state{client_ref=nil}) ->
     ok;
 maybe_close(#state{client_ref=Ref}) ->
     hackney:close(Ref).
+
+%post_decode([{}]) ->
+%    {[]};
+%post_decode([{_Key, _Value} | _Rest] = PropList) ->
+%  {[ {Key, post_decode(Value)} || {Key, Value} <- PropList ]};
+%post_decode(List) when is_list(List) ->
+%  [ post_decode(Term) || Term <- List];
+%post_decode(Term) ->
+%  Term.

@@ -66,8 +66,10 @@
 %% @doc Create a server for connectiong to a CouchDB node
 %% @equiv server_connection("127.0.0.1", 5984, "", [], false)
 server_connection() ->
-    server_connection(<<"http://127.0.0.1:5984">>, []).
-
+    URL = couchbeam_util:binary_env("COUCHDB_URL", "http://127.0.0.1:5984"),
+    ADMIN = couchbeam_util:binary_env("COUCHDB_ADMIN", "admin"),
+    PASSWORD = couchbeam_util:binary_env("COUCHDB_PASSWORD", "change_me"),
+    server_connection(URL, [{basic_auth, {ADMIN, PASSWORD}}]).
 
 server_connection(URL) when is_list(URL) orelse is_binary(URL) ->
     server_connection(URL, []).
@@ -119,9 +121,9 @@ server_connection(Host, Port) when is_integer(Port) ->
 %%          {consumer_secret, string()} |
 %%          {signature_method, string()}
 %%
-%% proxyOpt = {X-Auth-CouchDB-UserName, username :: string()} |
-%%            {X-Auth-CouchDB-Roles, roles :: string} | list_of_user_roles_separated_by_a_comma
-%%            {X-Auth-CouchDB-Token: token :: string()} | authentication token. Optional, but strongly recommended to force token be required to prevent requests from untrusted sources.
+%% proxyauthOpt = {X-Auth-CouchDB-UserName, username :: string()} |
+%%                {X-Auth-CouchDB-Roles, roles :: string} | list_of_user_roles_separated_by_a_comma
+%%                {X-Auth-CouchDB-Token: token :: string()} | authentication token. Optional, but strongly recommended to force token be required to prevent requests from untrusted sources.
 
 
 
@@ -301,7 +303,7 @@ view_cleanup(#db{server=Server, name=DbName, options=Opts}) ->
                                [DbName, <<"_view_cleanup">>],
                                []),
     Headers = [{<<"Content-Type">>, <<"application/json">>}],
-    Resp = couchbeam_httpc:db_request(post, Url, Headers, <<>>, Opts, [200]),
+    Resp = couchbeam_httpc:db_request(post, Url, Headers, <<>>, Opts, [200, 202]),
     case Resp of
         {ok, _, _, Ref} ->
             catch hackney:skip_body(Ref),
@@ -897,7 +899,7 @@ put_attachment(#db{server=Server, options=Opts}=Db, DocId, Name, Body,
                                QueryArgs),
 
     case couchbeam_httpc:db_request(put, Url, FinalHeaders, Body, Opts,
-                                    [201, 202]) of
+                                   [201, 202]) of
         {ok, _, _, Ref} ->
             JsonBody = couchbeam_httpc:json_body(Ref),
             {[{<<"ok">>, true}|R]} = JsonBody,

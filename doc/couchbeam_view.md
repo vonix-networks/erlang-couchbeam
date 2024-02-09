@@ -65,7 +65,7 @@ Equivalent to [`count(Db, all_docs, [])`](#count-3).
 ### count/2 ###
 
 <pre><code>
-count(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}) -&gt; integer() | {error, term()}
+count(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}) -&gt; integer() | {error, term()}
 </code></pre>
 <br />
 
@@ -76,7 +76,7 @@ Equivalent to [`count(Db, ViewName, [])`](#count-3).
 ### count/3 ###
 
 <pre><code>
-count(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}, Options::<a href="#type-view_options">view_options()</a>) -&gt; integer() | {error, term()}
+count(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}, Options::<a href="#type-view_options">view_options()</a>) -&gt; integer() | {error, term()}
 </code></pre>
 <br />
 
@@ -98,7 +98,7 @@ Equivalent to [`fetch(Db, all_docs, [])`](#fetch-3).
 ### fetch/2 ###
 
 <pre><code>
-fetch(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}) -&gt; {ok, Rows::[<a href="#type-ejson_object">ejson_object()</a>]} | {error, term()}
+fetch(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}) -&gt; {ok, Rows::[<a href="#type-ejson_object">ejson_object()</a>]} | {error, term()}
 </code></pre>
 <br />
 
@@ -109,7 +109,7 @@ Equivalent to [`fetch(Db, ViewName, [])`](#fetch-3).
 ### fetch/3 ###
 
 <pre><code>
-fetch(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}, Options::<a href="#type-view_options">view_options()</a>) -&gt; {ok, Rows::[<a href="#type-ejson_object">ejson_object()</a>]} | {error, term()}
+fetch(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}, Options::<a href="#type-view_options">view_options()</a>) -&gt; {ok, Rows::[<a href="#type-ejson_object">ejson_object()</a>]} | {error, term()}
 </code></pre>
 <br />
 
@@ -122,9 +122,11 @@ ViewName}`
 
 
 ```
-Options :: view_options() [{key, binary()} | {start_docid, binary()}
-     | {end_docid, binary()} | {start_key, binary()}
-     | {end_key, binary()} | {limit, integer()}
+Options :: view_options() [{key, binary()}
+     | {start_docid, binary()} | {startkey_docid, binary()}
+     | {end_docid, binary()} | {endkey_docid, binary()}
+     | {start_key, binary()} | {end_key, binary()}
+     | {limit, integer()}
      | {stale, stale()}
      | descending
      | {skip, integer()}
@@ -155,7 +157,7 @@ Equivalent to [`first(Db, all_docs, [])`](#first-3).
 ### first/2 ###
 
 <pre><code>
-first(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}) -&gt; {ok, Row::<a href="#type-ejson_object">ejson_object()</a>} | {error, term()}
+first(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}) -&gt; {ok, Row::<a href="#type-ejson_object">ejson_object()</a>} | {error, term()}
 </code></pre>
 <br />
 
@@ -166,7 +168,7 @@ Equivalent to [`first(Db, ViewName, [])`](#first-3).
 ### first/3 ###
 
 <pre><code>
-first(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}, Options::<a href="#type-view_options">view_options()</a>) -&gt; {ok, Rows::<a href="#type-ejson_object">ejson_object()</a>} | {error, term()}
+first(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}, Options::<a href="#type-view_options">view_options()</a>) -&gt; {ok, Rows::<a href="#type-ejson_object">ejson_object()</a>} | {error, term()}
 </code></pre>
 <br />
 
@@ -179,9 +181,11 @@ ViewName}
 
 
 ```
-Options :: view_options() [{key, binary()} | {start_docid, binary()}
-     | {end_docid, binary()} | {start_key, binary()}
-     | {end_key, binary()} | {limit, integer()}
+Options :: view_options() [{key, binary()}
+     | {start_docid, binary()} | {startkey_docid, binary()}
+     | {end_docid, binary()} | {endkey_docid, binary()}
+     | {start_key, binary()} | {end_key, binary()}
+     | {limit, integer()}
      | {stale, stale()}
      | descending
      | {skip, integer()}
@@ -201,7 +205,7 @@ Return: {ok, Row} or {error, Error}
 ### fold/4 ###
 
 <pre><code>
-fold(Function::function(), Acc::any(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}) -&gt; [term()] | {error, term()}
+fold(Function::function(), Acc::any(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}) -&gt; [term()] | {error, term()}
 </code></pre>
 <br />
 
@@ -212,7 +216,7 @@ Equivalent to [`fold(Function, Acc, Db, ViewName, [])`](#fold-5).
 ### fold/5 ###
 
 <pre><code>
-fold(Function::function(), Acc::any(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}, Options::<a href="#type-view_options">view_options()</a>) -&gt; [term()] | {error, term()}
+fold(Function::function(), Acc::any(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}, Options::<a href="#type-view_options">view_options()</a>) -&gt; [term()] | {error, term()}
 </code></pre>
 <br />
 
@@ -230,7 +234,7 @@ list is empty. For example:
 ### foreach/3 ###
 
 <pre><code>
-foreach(Function::function(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}) -&gt; [term()] | {error, term()}
+foreach(Function::function(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}) -&gt; [term()] | {error, term()}
 </code></pre>
 <br />
 
@@ -241,7 +245,7 @@ Equivalent to [`foreach(Function, Db, ViewName, [])`](#foreach-4).
 ### foreach/4 ###
 
 <pre><code>
-foreach(Function::function(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}, Options::<a href="#type-view_options">view_options()</a>) -&gt; [term()] | {error, term()}
+foreach(Function::function(), Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}, Options::<a href="#type-view_options">view_options()</a>) -&gt; [term()] | {error, term()}
 </code></pre>
 <br />
 
@@ -267,7 +271,7 @@ parse view options
 ### stream/2 ###
 
 <pre><code>
-stream(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}) -&gt; {ok, StartRef::term(), ViewPid::pid()} | {error, term()}
+stream(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}) -&gt; {ok, StartRef::term(), ViewPid::pid()} | {error, term()}
 </code></pre>
 <br />
 
@@ -278,7 +282,7 @@ Equivalent to [`stream(Db, ViewName, Client, [])`](#stream-4).
 ### stream/3 ###
 
 <pre><code>
-stream(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::string(), ViewName::string()}, Options::<a href="#type-view_options">view_options()</a>) -&gt; {ok, StartRef::term(), ViewPid::pid()} | {error, term()}
+stream(Db::<a href="#type-db">db()</a>, ViewName::all_docs | {DesignName::<a href="#type-design_name">design_name()</a>, ViewName::<a href="#type-view_name">view_name()</a>}, Options::<a href="#type-view_options">view_options()</a>) -&gt; {ok, StartRef::term()} | {error, term()}
 </code></pre>
 <br />
 
@@ -324,9 +328,11 @@ happend.</dd>
 
 
 ```
-Options :: view_options() [{key, binary()} | {start_docid, binary()}
-     | {end_docid, binary()} | {start_key, binary()}
-     | {end_key, binary()} | {limit, integer()}
+Options :: view_options() [{key, binary()}
+     | {start_docid, binary()} | {startkey_docid, binary()}
+     | {end_docid, binary()} | {endkey_docid, binary()}
+     | {start_key, binary()} | {end_key, binary()}
+     | {limit, integer()}
      | {stale, stale()}
      | descending
      | {skip, integer()}
@@ -340,10 +346,10 @@ Options :: view_options() [{key, binary()} | {start_docid, binary()}
 
 * `{key, Key}`: key value
 
-* `{start_docid, DocId}`: document id to start with (to allow pagination
+* `{start_docid, DocId}` | `{startkey_docid, DocId}`: document id to start with (to allow pagination
 for duplicate start keys
 
-* `{end_docid, DocId}`: last document id to include in the result (to
+* `{end_docid, DocId}` | `{endkey_docid, DocId}`: last document id to include in the result (to
 allow pagination for duplicate endkeys)
 
 * `{start_key, Key}`: start result from key value
@@ -355,7 +361,8 @@ allow pagination for duplicate endkeys)
 * `{stale, Stale}`: If stale=ok is set, CouchDB will not refresh the view
 even if it is stale, the benefit is a an improved query latency. If
 stale=update_after is set, CouchDB will update the view after the stale
-result is returned.
+result is returned. If stale=false is set, CouchDB will update the view before
+the query. The default value of this parameter is update_after.
 
 * `descending`: reverse the result
 

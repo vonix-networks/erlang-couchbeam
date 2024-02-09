@@ -28,6 +28,9 @@
 -type db_name() :: binary() | string().
 -type docid() :: binary() | string().
 
+-type design_name() :: binary() | string().
+-type view_name() :: binary() | string().
+
 -type ejson() :: ejson_object() | ejson_array().
 
 -type ejson_array() :: [ejson_term()].
@@ -79,19 +82,21 @@
                                | {doc_ids, list()}.
 -type changes_stream_options() :: list(changes_stream_option()).
 
--type stale() :: ok | update_after.
+-type stale() :: ok | update_after | false.
 
--type view_option() :: {key, binary()} | {start_docid, binary()}
-                     | {end_docid, binary()} | {start_key, binary()}
-                     | {end_key, binary()} | {limit, integer()}
-                     | {stale, stale()}
-                     | descending
-                     | {skip, integer()}
-                     | group | {group_level, exact | integer()}
-                     | reduce | {reduce, boolean()}
-                     | inclusive_end | include_docs | conflicts
-                     | {list, binary()}
-                     | {keys, list(binary())}.
+-type view_option() :: {key, binary()} | {startkey_docid, binary()}
+    | {start_docid, binary()} | {startkey_docid, binary()}
+    | {end_docid, binary()} | {endkey_docid, binary()}
+    | {start_key, binary()} | {end_key, binary()}
+    | {limit, integer()}
+    | {stale, stale()}
+    | descending
+    | {skip, integer()}
+    | group | {group_level, exact | integer()}
+    | reduce | {reduce, boolean()}
+    | inclusive_end | include_docs | conflicts
+    | {list, binary()}
+    | {keys, list(binary())}.
 
 -type view_options() :: list(view_option()).
 
@@ -111,10 +116,10 @@
 
                                                 % record to keep database information
 -record(db, {
-             server :: server(),
-             name :: binary(),
-             options = [] :: list()
-            }).
+    server :: server(),
+    name :: binary(),
+    options = [] :: list()
+}).
 
 -type db() :: #db{}.
 

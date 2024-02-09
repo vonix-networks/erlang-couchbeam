@@ -38,24 +38,26 @@ all(Db, Options) ->
 fetch(Db) ->
     fetch(Db, 'all_docs', []).
 
--spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                              ViewName::binary()})
-           -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
+-spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()})
+    -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @equiv fetch(Db, ViewName, [])
 fetch(Db, ViewName) ->
     fetch(Db, ViewName,[]).
 
 
--spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                              ViewName::binary()}, Options::view_options())
-           -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
+-spec fetch(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}, Options::view_options())
+     -> {ok, Rows::list(ejson_object())} | {error, term()} | {error, term(), Rows::list(ejson_object())}.
 %% @doc Collect view results
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: <code>'all_docs'</code> to get all docs or <code>{DesignName,
 %%  ViewName}</code></p>
-%%  <pre>Options :: view_options() [{key, binary()} | {start_docid, binary()}
-%%    | {end_docid, binary()} | {start_key, binary()}
-%%    | {end_key, binary()} | {limit, integer()}
+%%  <pre>Options :: view_options() [{key, binary()}
+%%    | {start_docid, binary()} | {startkey_docid, binary()}
+%%    | {end_docid, binary()} | {endkey_docid, binary()}
+%%    | {start_key, binary()} | {end_key, binary()}
+%%    | {limit, integer()}
 %%    | {stale, stale()}
 %%    | descending
 %%    | {skip, integer()}
@@ -131,9 +133,9 @@ show_doc_id(<<DocId/binary>>) -> [<<"/">>, couchbeam_util:encode_docid(DocId)].
 stream(Db, ViewName) ->
     stream(Db, ViewName, []).
 
--spec stream(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                               ViewName::binary()}, Options::view_options())
-            -> {ok, StartRef::term()} | {error, term()}.
+-spec stream(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}, Options::view_options())
+    -> {ok, StartRef::term()} | {error, term()} | {error, term()}.
 %% @doc stream view results to a pid
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: 'all_docs' to get all docs or {DesignName,
@@ -148,9 +150,11 @@ stream(Db, ViewName) ->
 %%          <dd>Got an error, connection is closed when an error
 %%          happend.</dd>
 %%  </dl></p>
-%%  <p><pre>Options :: view_options() [{key, binary()} | {start_docid, binary()}
-%%    | {end_docid, binary()} | {start_key, binary()}
-%%    | {end_key, binary()} | {limit, integer()}
+%%  <p><pre>Options :: view_options() [{key, binary()}
+%%    | {start_docid, binary()} | {startkey_docid, binary()}
+%%    | {end_docid, binary()} | {endkey_docid, binary()}
+%%    | {start_key, binary()} | {end_key, binary()}
+%%    | {limit, integer()}
 %%    | {stale, stale()}
 %%    | descending
 %%    | {skip, integer()}
@@ -163,9 +167,9 @@ stream(Db, ViewName) ->
 %%
 %%  <ul>
 %%      <li><code>{key, Key}</code>: key value</li>
-%%      <li><code>{start_docid, DocId}</code>: document id to start with (to allow pagination
+%%      <li><code>{start_docid, DocId}</code> | <code>{startkey_docid, DocId}</code>: document id to start with (to allow pagination
 %%          for duplicate start keys</li>
-%%      <li><code>{end_docid, DocId}</code>: last document id to include in the result (to
+%%      <li><code>{end_docid, DocId}</code> | <code>{endkey_docid, DocId}</code>: last document id to include in the result (to
 %%          allow pagination for duplicate endkeys)</li>
 %%      <li><code>{start_key, Key}</code>: start result from key value</li>
 %%      <li><code>{end_key, Key}</code>: end result from key value</li>
@@ -173,7 +177,8 @@ stream(Db, ViewName) ->
 %%      <li><code>{stale, Stale}</code>: If stale=ok is set, CouchDB will not refresh the view
 %%      even if it is stale, the benefit is a an improved query latency. If
 %%      stale=update_after is set, CouchDB will update the view after the stale
-%%      result is returned.</li>
+%%      result is returned. If stale=false is set, CouchDB will update the view before
+%%      the query. The default value of this parameter is update_after.</li>
 %%      <li><code>descending</code>: reverse the result</li>
 %%      <li><code>{skip, N}</code>: skip n number of documents</li>
 %%      <li><code>group</code>: the reduce function reduces to a single result
@@ -219,21 +224,21 @@ stream(Db, ViewName, Options) ->
 
 cancel_stream(Ref) ->
     with_view_stream(Ref, fun(Pid) ->
-                                  case supervisor:terminate_child(couch_view_sup, Pid) of
-                                      ok ->
-                                          case supervisor:delete_child(couch_view_sup,
-                                                                       Pid) of
-                                              ok ->
-                                                  ok;
-                                              {error, not_found} ->
-                                                  ok;
-                                              Error ->
-                                                  Error
-                                          end;
-                                      Error ->
-                                          Error
-                                  end
-                          end).
+                case supervisor:terminate_child(couchbeam_view_sup, Pid) of
+                    ok ->
+                        case supervisor:delete_child(couchbeam_view_sup,
+                                                     Pid) of
+                            ok ->
+                                ok;
+                            {error, not_found} ->
+                                ok;
+                            Error ->
+                                Error
+                        end;
+                    Error ->
+                        Error
+                end
+        end).
 
 stream_next(Ref) ->
     with_view_stream(Ref, fun(Pid) ->
@@ -245,15 +250,15 @@ stream_next(Ref) ->
 count(Db) ->
     count(Db, 'all_docs', []).
 
--spec count(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                              ViewName::binary()}) -> integer() | {error, term()}.
+-spec count(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}) -> integer() | {error, term()}.
 %% @equiv count(Db, ViewName, [])
 count(Db, ViewName) ->
     count(Db, ViewName, []).
 
--spec count(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                              ViewName::binary()}, Options::view_options())
-           -> integer() | {error, term()}.
+-spec count(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}, Options::view_options())
+    -> integer() | {error, term()}.
 %% @doc count number of doc in a view (or all docs)
 count(Db, ViewName, Options)->
     %% make sure we set the limit to 0 here so we don't have to get all
@@ -276,24 +281,26 @@ count(Db, ViewName, Options)->
 first(Db) ->
     first(Db, 'all_docs', []).
 
--spec first(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                              ViewName::binary()})
-           -> {ok, Row::ejson_object()} | {error, term()}.
+-spec first(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()})
+    -> {ok, Row::ejson_object()} | {error, term()}.
 %% @equiv first(Db, ViewName, [])
 first(Db, ViewName) ->
     first(Db, ViewName,[]).
 
 
--spec first(Db::db(), ViewName::'all_docs' | {DesignName::binary(),
-                                              ViewName::binary()}, Options::view_options())
-           -> {ok, Rows::ejson_object()} | {error, term()}.
+-spec first(Db::db(), ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}, Options::view_options())
+     -> {ok, Rows::ejson_object()} | {error, term()}.
 %% @doc get first result of a view
 %%  <p>Db: a db record</p>
 %%  <p>ViewName: 'all_docs' to get all docs or {DesignName,
 %%  ViewName}</p>
-%%  <pre>Options :: view_options() [{key, binary()} | {start_docid, binary()}
-%%    | {end_docid, binary()} | {start_key, binary()}
-%%    | {end_key, binary()} | {limit, integer()}
+%%  <pre>Options :: view_options() [{key, binary()}
+%%    | {start_docid, binary()} | {startkey_docid, binary()}
+%%    | {end_docid, binary()} | {endkey_docid, binary()}
+%%    | {start_key, binary()} | {end_key, binary()}
+%%    | {limit, integer()}
 %%    | {stale, stale()}
 %%    | descending
 %%    | {skip, integer()}
@@ -325,16 +332,16 @@ first(Db, ViewName, Options) ->
                                       end).
 
 -spec fold(Function::function(), Acc::any(), Db::db(),
-           ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()})
-          -> list(term()) | {error, term()}.
+        ViewName::'all_docs' | {DesignName::design_name(), ViewName::view_name()})
+    -> list(term()) | {error, term()}.
 %% @equiv fold(Function, Acc, Db, ViewName, [])
 fold(Function, Acc, Db, ViewName) ->
     fold(Function, Acc, Db, ViewName, []).
 
 -spec fold(Function::function(), Acc::any(), Db::db(),
-           ViewName::'all_docs' | {DesignName::binary(),
-                                   ViewName::binary()}, Options::view_options())
-          -> list(term()) | {error, term()}.
+        ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}, Options::view_options())
+    -> list(term()) | {error, term()}.
 %% @doc call Function(Row, AccIn) on succesive row, starting with
 %% AccIn == Acc. Function/2 must return a new list accumultator or the
 %% atom <em>done</em> to stop fetching results. Acc0 is returned if the
@@ -354,16 +361,16 @@ fold(Function, Acc, Db, ViewName, Options) ->
     end.
 
 -spec foreach(Function::function(), Db::db(),
-              ViewName::'all_docs' | {DesignName::binary(), ViewName::binary()})
-             -> list(term()) | {error, term()}.
+        ViewName::'all_docs' | {DesignName::design_name(), ViewName::view_name()})
+    -> list(term()) | {error, term()}.
 %% @equiv foreach(Function, Db, ViewName, [])
 foreach(Function, Db, ViewName) ->
     foreach(Function, Db, ViewName, []).
 
 -spec foreach(Function::function(),  Db::db(),
-              ViewName::'all_docs' | {DesignName::binary(),
-                                      ViewName::binary()}, Options::view_options())
-             -> list(term()) | {error, term()}.
+        ViewName::'all_docs' | {DesignName::design_name(),
+        ViewName::view_name()}, Options::view_options())
+    -> list(term()) | {error, term()}.
 %% @doc call Function(Row) on succesive row. Example:
 %% ```
 %% couchbeam_view:foreach(fun(Row) -> io:format("got row ~p~n", [Row]) end, Db, 'all_docs').
@@ -391,15 +398,15 @@ parse_view_options([{key, Value}|Rest], #view_query_args{options=Opts}=Args) ->
     Opts1 = [{key, couchbeam_ejson:encode(Value)}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([{start_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
-    Opts1 = [{start_docid, Value}|Opts],
+    Opts1 = [{startkey_docid, Value}|Opts],
+    parse_view_options(Rest, Args#view_query_args{options=Opts1});
+parse_view_options([{startkey_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
+    Opts1 = [{startkey_docid, Value}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([{end_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
     Opts1 = [{end_docid, Value}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 
-parse_view_options([{startkey_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
-    Opts1 = [{startkey_docid, Value}|Opts],
-    parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([{endkey_docid, Value}|Rest], #view_query_args{options=Opts}=Args) ->
     Opts1 = [{endkey_docid, Value}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
@@ -425,6 +432,9 @@ parse_view_options([{stale, ok}|Rest], #view_query_args{options=Opts}=Args) ->
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([{stale, update_after}|Rest], #view_query_args{options=Opts}=Args) ->
     Opts1 = [{stale, "update_after"}|Opts],
+    parse_view_options(Rest, Args#view_query_args{options=Opts1});
+parse_view_options([{stale, false}|Rest], #view_query_args{options=Opts}=Args) ->
+    Opts1 = [{stale, "false"}|Opts],
     parse_view_options(Rest, Args#view_query_args{options=Opts1});
 parse_view_options([{stale, _}|_Rest], _Args) ->
     {error, "invalid stale value"};
